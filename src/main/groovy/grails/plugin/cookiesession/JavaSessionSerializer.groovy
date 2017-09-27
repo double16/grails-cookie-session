@@ -29,7 +29,7 @@ class JavaSessionSerializer implements SessionSerializer{
 
   final static Logger log = LoggerFactory.getLogger(JavaSessionSerializer.class.getName());
 
-  DefaultGrailsApplication grailsApplication
+  def grailsApplication
 
   public byte[] serialize(SerializableSession session){
     log.trace "serializeSession()"
