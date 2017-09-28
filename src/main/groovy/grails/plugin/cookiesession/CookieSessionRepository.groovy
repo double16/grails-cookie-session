@@ -97,7 +97,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
           useSessionCookieConfig = false
 
       if( useSessionCookieConfig == false )
-        log.warn "useSessionCookieConfig was enabled in the config file, but has been disabled because the servlet does not support SessionCookieConfig."  
+        log.warn "useSessionCookieConfig was enabled in the config file, but has been disabled because the servlet does not support SessionCookieConfig."
     }
 
     // if useSessionCookieConfig, then attach to invokeMethod and setProperty so that the values can be intercepted and assigned to local variables
@@ -164,11 +164,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
     assignSettingFromConfig( 'encryptcookie', false, Boolean, 'encryptCookie' )
     assignSettingFromConfig( 'cryptoalgorithm', 'Blowfish', String, 'cryptoAlgorithm' )
-    
+
     def cryptoSecretConfig = grailsApplication.config.grails.plugin.cookiesession.find{ k,v -> k.equalsIgnoreCase('secret') }
     if( cryptoSecretConfig ){
       if( cryptoSecretConfig.value instanceof byte[] ){
-        cryptoSecret = cryptoSecretConfig.value 
+        cryptoSecret = cryptoSecretConfig.value
         log.trace "grails.plugin.cookiesession.secret set with byte[]"
       }
       else if( cryptoSecretConfig.value instanceof String ){
@@ -180,7 +180,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         log.trace "grails.plugin.cookiesession.secret set with ArrayList as byte[]"
       }
     }
-    
+
     assignSettingFromConfig( 'cookiecount', 5, Integer, 'cookieCount' )
 
     assignSettingFromConfig('serializer','java',String,'serializer' )
@@ -197,7 +197,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
       log.error "no valid serializer configured. defaulting to java"
       serializer = "javaSessionSerializer"
     }
-      
+
     assignSettingFromConfig( 'maxcookiesize', 2048, Integer, 'maxCookieSize')
     if( maxCookieSize < 1024 && maxCookieSize > 4096 ){
         maxCookieSize = 2048
@@ -206,11 +206,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     else{
         log.info "grails.plugin.cookiesession.maxCookieSize set: ${maxCookieSize}"
     }
-    
+
     if( maxCookieSize * cookieCount > 6114 ){
       log.warn "the maxcookiesize and cookiecount settings will allow for a max session size of ${maxCookieSize*cookieCount} bytes. Make sure you increase the max http header size in order to support this configuration. see the help file for this plugin for instructions."
     }
-  
+
     assignSettingFromConfig( 'cookiename', 'gsession', String, 'cookieName')
     assignSettingFromConfig( 'setsecure', false, Boolean, 'secure')
     assignSettingFromConfig( 'httponly', false, Boolean, 'httpOnly')
@@ -227,9 +227,9 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
       this.domain = servletContext.sessionCookieConfig.domain ?: domain
       this.comment = servletContext.sessionCookieConfig.comment ?: comment
       this.maxInactiveInterval = servletContext.sessionCookieConfig.maxAge ?: maxInactiveInterval
-      log.trace "processed sessionCookieConfig. cookie settings are: [name: ${cookieName}, httpOnly: ${httpOnly}, secure: ${secure}, path: ${path}, domain: ${domain}, comment: ${comment}, maxAge: ${maxInactiveInterval}]" 
+      log.trace "processed sessionCookieConfig. cookie settings are: [name: ${cookieName}, httpOnly: ${httpOnly}, secure: ${secure}, path: ${path}, domain: ${domain}, comment: ${comment}, maxAge: ${maxInactiveInterval}]"
     }
-    
+
     if( grailsApplication.config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility') )
       log.info "grails.plugin.cookiesession.springsecuritycompatibility set: ${grailsApplication.config.grails.plugin.cookiesession['springsecuritycompatibility']}"
     else
@@ -239,7 +239,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
       log.warn "the grails.plugin.cookiesession.id setting is deprecated! Use the grails.plugin.cookiesession.cookiename setting instead!"
 
     if( grailsApplication.config.grails.plugin.cookiesession.containsKey('timeout') )
-      log.warn "the grails.plugin.cookiesession.timeout setting is deprecated! Use the grails.plugin.cookiesession.sessiontimeout setting instead!" 
+      log.warn "the grails.plugin.cookiesession.timeout setting is deprecated! Use the grails.plugin.cookiesession.sessiontimeout setting instead!"
 
     if( grailsApplication.config.grails.plugin.cookiesession.hmac.containsKey('secret') )
       log.warn "the grails.plugin.cookiesession.hmac.secret setting is deprecated! Use the grails.plugin.cookiesession.secret setting instead!"
@@ -260,9 +260,9 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     else{
       cryptoKey = new SecretKeySpec(cryptoSecret, cryptoAlgorithm.split('/')[0])
     }
-  
+
     // determine if an initialization vector is needed
-    useInitializationVector = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() != 'ECB' 
+    useInitializationVector = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() != 'ECB'
     useGCMmode =  cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() == 'GCM'
 
 
@@ -302,11 +302,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
   SerializableSession restoreSession( HttpServletRequest request ){
     log.trace "restoreSession()"
-    
+
     SerializableSession session = null
 
     try{
-      // - get the data from the cookie 
+      // - get the data from the cookie
       // - deserialize the session (handles compression and encryption)
       // - check to see if the session is expired
       // - return the session
@@ -320,7 +320,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
       def maxInactiveIntervalMillis = maxInactiveInterval * 1000;
       def currentTime = System.currentTimeMillis()
       def lastAccessedTime = session?.lastAccessedTime?:0
-      long inactiveInterval = currentTime - lastAccessedTime 
+      long inactiveInterval = currentTime - lastAccessedTime
 
       if( session ){
         if( session.isValid == false ){
@@ -354,8 +354,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
   void saveSession( SerializableSession session, HttpServletResponse response ){
     log.trace "saveSession()"
 
-    String serializedSession = serializeSession(session) 
-   
+    String serializedSession = serializeSession(session)
+
     if( session.isValid )
       putDataInCookie(response, serializedSession )
     else
@@ -370,20 +370,20 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
     log.trace "serializing session"
     byte[] bytes = sessionSerializer.serialize(session)
-   
+
     log.trace "compressing serialiezd session from ${bytes.length} bytes"
     ByteArrayOutputStream stream = new ByteArrayOutputStream()
     def gzipOut = new GZIPOutputStream(stream)
     gzipOut.write(bytes,0,bytes.length)
     gzipOut.close()
- 
+
     bytes = stream.toByteArray()
     log.trace "compressed serialized session to ${bytes.length}"
 
     if( encryptCookie ){
       log.trace "encrypting serialized session"
       Cipher cipher = Cipher.getInstance(cryptoAlgorithm)
-      cipher.init( Cipher.ENCRYPT_MODE, cryptoKey ) 
+      cipher.init( Cipher.ENCRYPT_MODE, cryptoKey )
       bytes = cipher.doFinal(bytes)
 
       if( useInitializationVector ){
@@ -406,12 +406,12 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     log.trace "deserializeSession()"
 
     def session = null
-    
+
     try
     {
       log.trace "decodeBase64 serialized session from ${serializedSession.size()} bytes."
       def input = serializedSession.decodeBase64()
- 
+
       if( encryptCookie ){
         log.trace "decrypting serialized session from ${input.length} bytes."
         Cipher cipher = Cipher.getInstance(cryptoAlgorithm)
@@ -435,14 +435,14 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
       log.trace "decompressing serialized session from ${input.length} bytes"
       def inputStream = new GZIPInputStream( new ByteArrayInputStream( input ) )
       def outputStream = new ByteArrayOutputStream()
-      
+
       byte[] buffer = new byte[1024]
       int bytesRead = 0
       while( (bytesRead = inputStream.read(buffer)) != -1 ){
         outputStream.write(buffer,0,bytesRead)
       }
       outputStream.flush()
-     
+
       byte[] bytes = outputStream.toByteArray()
       log.trace "decompressed serialized session to ${bytes.length} bytes"
 
