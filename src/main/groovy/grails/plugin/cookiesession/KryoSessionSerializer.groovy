@@ -107,8 +107,7 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean{
       def grailsUserClass
 
       def usernamePasswordAuthenticationTokenClass = grailsApplication.classLoader.loadClass("org.springframework.security.authentication.UsernamePasswordAuthenticationToken")
-      def grantedAuthorityImplClass = grailsApplication.classLoader.loadClass("org.springframework.security.core.authority.GrantedAuthorityImpl")
-     
+
       if( springSecurityPluginVersion[0].toInteger() >= 2 ){
         grailsUserClass = grailsApplication.classLoader.loadClass("grails.plugin.springsecurity.userdetails.GrailsUser")
         
@@ -124,10 +123,15 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean{
 
       def userClass = grailsApplication.classLoader.loadClass("org.springframework.security.core.userdetails.User")
 
-      def grantedAuthorityImplSerializer = new GrantedAuthorityImplSerializer()
-      grantedAuthorityImplSerializer.targetClass = grantedAuthorityImplClass
-      kryo.register(grantedAuthorityImplClass,grantedAuthorityImplSerializer)
-      log.trace "registered GratedAuthorityImpl serializer"
+      try {
+        def grantedAuthorityImplClass = grailsApplication.classLoader.loadClass("org.springframework.security.core.authority.GrantedAuthorityImpl")
+        def grantedAuthorityImplSerializer = new GrantedAuthorityImplSerializer()
+        grantedAuthorityImplSerializer.targetClass = grantedAuthorityImplClass
+        kryo.register(grantedAuthorityImplClass,grantedAuthorityImplSerializer)
+        log.trace "registered GratedAuthorityImpl serializer"
+      } catch (ClassNotFoundException e) {
+        log.trace "GratedAuthorityImpl not found, no serializer registered"
+      }
 
       def userSerializer = new UserSerializer()
       userSerializer.targetClass = userClass 
