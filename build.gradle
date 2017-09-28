@@ -12,7 +12,7 @@ buildscript {
     }
 }
 
-version "4.0.0"
+version "4.0.0-SNAPSHOT"
 group "org.grails.plugins"
 description "The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server."
 
@@ -48,8 +48,10 @@ dependencies {
 
     console "org.grails:grails-console"
 
-    compile group: "com.esotericsoftware", name: "kryo", version: "4.0.1"
-    compile group: "de.javakaffee", name: "kryo-serializers", version: "0.42"
+    compile group: "com.esotericsoftware", name: "kryo-shaded", version: "4.0.1"
+    compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.42") {
+        exclude module: 'kryo' // we want kryo-shaded as above
+    }
 }
 
 task wrapper(type: Wrapper) {

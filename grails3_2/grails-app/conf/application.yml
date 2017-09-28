@@ -31,7 +31,8 @@ endpoints:
     enabled: false
     jmx:
         enabled: true
-
+server:
+    port: 18032
 ---
 grails:
     mime:

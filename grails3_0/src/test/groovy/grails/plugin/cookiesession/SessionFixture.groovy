@@ -1,7 +1,5 @@
-package cookiesession
+package grails.plugin.cookiesession
 
-import grails.plugin.cookiesession.SerializableSession
-import grails.plugin.cookiesession.SessionFixtureBase
 import org.grails.web.servlet.GrailsFlashScope
 import org.grails.web.util.GrailsApplicationAttributes
 
@@ -9,10 +7,6 @@ import org.grails.web.util.GrailsApplicationAttributes
  * Helpers for creating and comparing sessions in tests.
  */
 trait SessionFixture extends SessionFixtureBase {
-    SerializableSession emptySession() {
-        new SerializableSession()
-    }
-
     SerializableSession flashScopeSession() {
         GrailsFlashScope scope = new GrailsFlashScope()
         scope['flash_key1'] = 'string1'

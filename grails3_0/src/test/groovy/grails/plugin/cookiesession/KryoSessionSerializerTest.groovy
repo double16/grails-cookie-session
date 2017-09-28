@@ -1,17 +1,16 @@
-package cookiesession
+package grails.plugin.cookiesession
 
-import grails.plugin.cookiesession.JavaSessionSerializer
 import grails.test.mixin.TestMixin
 import grails.test.mixin.support.GrailsUnitTestMixin
 import grails.test.mixin.web.ControllerUnitTestMixin
 import spock.lang.Specification
 
 @TestMixin([GrailsUnitTestMixin, ControllerUnitTestMixin])
-class JavaSessionSerializerTest extends Specification implements SessionFixture {
-    JavaSessionSerializer serializer
+class KryoSessionSerializerTest extends Specification implements SessionFixture {
+    KryoSessionSerializer serializer
 
     def setup() {
-        serializer = new JavaSessionSerializer()
+        serializer = new KryoSessionSerializer()
         serializer.grailsApplication = grailsApplication
     }
 

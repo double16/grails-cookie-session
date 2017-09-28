@@ -46,8 +46,9 @@ dependencyManagement {
 }
 
 dependencies {
-    compile rootProject
-    testCompile project(':test-common')
+    compile project(path: ':', configuration: 'archives')
+    compile project(path: ':', configuration: 'default')
+    testCompile project(path: ':test-common', configuration: 'archives')
 
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-starter-actuator"

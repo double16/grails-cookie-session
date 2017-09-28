@@ -23,6 +23,7 @@ import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
+import grails.plugin.cookiesession.kryo.GrailsFlashScopeSerializer
 import org.objenesis.strategy.StdInstantiatorStrategy
 import com.esotericsoftware.kryo.serializers.FieldSerializer
 import de.javakaffee.kryoserializers.*
@@ -89,10 +90,12 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean{
     log.trace "configuring kryo serializer"
 
     def kryo = new Kryo()
+    kryo.instantiatorStrategy = new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy())
     kryo.fieldSerializerConfig.setUseAsm(true)
+    kryo.fieldSerializerConfig.setOptimizedGenerics(true)
 
     // register fieldserializer for GrailsFlashScope
-    def flashScopeSerializer = new FieldSerializer(kryo, GrailsFlashScope.class);
+    def flashScopeSerializer = new GrailsFlashScopeSerializer()
     kryo.register(GrailsFlashScope.class,flashScopeSerializer)
     log.trace "registered FlashScopeSerializer"
 
@@ -146,7 +149,6 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean{
     kryo.classLoader = grailsApplication.classLoader
     log.trace "grailsApplication.classLoader assigned to kryo.classLoader"
 
-    kryo.instantiatorStrategy = new StdInstantiatorStrategy()
     kryo.register( Arrays.asList( "" ).getClass(), new ArraysAsListSerializer( ) );
     kryo.register( Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer() );
     kryo.register( Collections.EMPTY_MAP.getClass(), new CollectionsEmptyMapSerializer() );

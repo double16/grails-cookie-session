@@ -1,13 +1,10 @@
-package cookiesession
+package grails.plugin.cookiesession
 
-import grails.plugin.cookiesession.KryoSessionSerializer
-import grails.test.mixin.TestMixin
-import grails.test.mixin.support.GrailsUnitTestMixin
-import grails.test.mixin.web.ControllerUnitTestMixin
+import grails.testing.web.controllers.ControllerUnitTest
+import grails3_3.SecureController
 import spock.lang.Specification
 
-@TestMixin([GrailsUnitTestMixin, ControllerUnitTestMixin])
-class KryoSessionSerializerTest extends Specification implements SessionFixture {
+class KryoSessionSerializerTest extends Specification implements SessionFixture, ControllerUnitTest<SecureController> {
     KryoSessionSerializer serializer
 
     def setup() {

@@ -1,6 +1,5 @@
-package cookiesession
+package grails.plugin.cookiesession
 
-import grails.plugin.cookiesession.JavaSessionSerializer
 import grails.test.mixin.TestMixin
 import grails.test.mixin.support.GrailsUnitTestMixin
 import grails.test.mixin.web.ControllerUnitTestMixin

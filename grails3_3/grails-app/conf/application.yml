@@ -29,6 +29,9 @@ endpoints:
     jmx:
         enabled: true
 
+server:
+    port: 18033
+
 ---
 grails:
     mime:
