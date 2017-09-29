@@ -25,7 +25,7 @@ class UserPasswordEncoderListener extends AbstractPersistenceEventListener {
         if (event.entityObject instanceof User) {
             User u = (event.entityObject as User)
             if (u.password && (event.eventType == EventType.PreInsert || (event.eventType == EventType.PreUpdate && u.isDirty('password')))) {
-                event.getEntityAccess().setProperty("password", encodePassword(u.password))
+                u.setProperty("password", encodePassword(u.password))
             }
         }
     }

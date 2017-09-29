@@ -1,10 +1,13 @@
 plugins {
     id 'groovy'
+    id 'maven-publish'
 }
+version rootProject.version
 ext {
     grailsVersion = rootProject.grailsVersion
     gebVersion = '1.1.1'
 }
+group 'org.grails.plugins.cookie-session'
 dependencies {
     compile "org.codehaus.groovy:groovy-all:2.4.10"
     compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
@@ -16,4 +19,11 @@ dependencies {
     compile "org.gebish:geb-core:${gebVersion}"
     compile "org.gebish:geb-spock:${gebVersion}"
     compile "org.grails.plugins:geb:1.0.1"
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 }

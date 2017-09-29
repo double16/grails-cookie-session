@@ -1,7 +1,9 @@
 rootProject.name = 'cookie-session'
 
 include 'test-common'
-include 'grails3_3'
-include 'grails3_2'
-include 'grails3_1'
-include 'grails3_0'
+includeBuild 'grails3_3'
+includeBuild 'grails3_2'
+includeBuild 'grails3_1'
+
+// The spring-boot-gradle-plugin used in Grails 3.0 isn't compatible with compsite builds, so we need to this the 3.0 tests separately
+//includeBuild 'grails3_0'

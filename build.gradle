@@ -23,7 +23,6 @@ apply plugin: "org.grails.grails-plugin-publish"
 
 ext {
     grailsVersion = project.grailsVersion
-    gradleWrapperVersion = project.gradleWrapperVersion
 }
 
 sourceCompatibility = 1.7
@@ -54,11 +53,22 @@ dependencies {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = gradleWrapperVersion
-}
-
 bootRepackage.enabled = false
+
+// hack for Gradle 4
+jar {
+    def expected = new File("${project.sourceSets.main.output.classesDir}/META-INF/grails-plugin.xml")
+    def actual = new File(expected.absolutePath.replace('/java/', '/groovy/'))
+
+    outputs.file(expected)
+    doLast {
+        logger.info "grails-plugin.xml hack, actual = ${actual}, expected = ${expected}"
+        if (actual.exists() && !expected.exists()) {
+            expected.parentFile.mkdirs()
+            expected.text = actual.text
+        }
+    }
+}
 
 grailsPublish {
     user = System.getenv('BINTRAY_USER')
@@ -70,4 +80,29 @@ grailsPublish {
     title = "cookie-session"
     desc = project.description
     developers = [benlucchesi:"Ben Lucchesi", double16:"Patrick Double"]
+}
+
+task test3_0(type: GradleBuild, group: 'verification') {
+    dependsOn publishToMavenLocal
+    dir = 'grails3_0'
+    tasks = ['test']
+}
+
+task integrationTest3_0(type: GradleBuild, group: 'verification') {
+    dependsOn publishToMavenLocal
+    dir = 'grails3_0'
+    tasks = ['integrationTest']
+}
+
+task testAll(group: 'verification') {
+    dependsOn test
+    dependsOn publishToMavenLocal
+    //dependsOn test3_0
+    dependsOn gradle.includedBuilds*.task(':test')
+}
+
+task integrationTestAll(group: 'verification') {
+    dependsOn publishToMavenLocal
+    //dependsOn integrationTest3_0
+    dependsOn gradle.includedBuilds*.task(':integrationTest')
 }

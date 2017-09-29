@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        grailsVersion = '3.1.16'
+        grailsVersion = project.grailsVersion
     }
     repositories {
         mavenLocal()
@@ -38,9 +38,10 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(path: ':', configuration: 'archives')
-    compile project(path: ':', configuration: 'default')
-    testCompile project(path: ':test-common', configuration: 'archives')
+    compile "org.grails.plugins:cookie-session:+"
+    testCompile("org.grails.plugins.cookie-session:test-common:+") {
+        transitive = false
+    }
 
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"

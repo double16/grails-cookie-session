@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        grailsVersion = '3.0.17'
+        grailsVersion = project.grailsVersion
     }
     repositories {
         mavenLocal()
@@ -10,14 +10,14 @@ buildscript {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.5.0'
         classpath "org.grails.plugins:hibernate:4.3.10.5"
-        classpath 'io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE'
+        classpath "io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE"
     }
 }
 
 version "0.1"
 group "grails3_0"
 
-apply plugin: 'io.spring.dependency-management'
+apply plugin: "io.spring.dependency-management"
 apply plugin: "spring-boot"
 apply plugin: "war"
 apply plugin: "asset-pipeline"
@@ -26,6 +26,7 @@ apply plugin: "org.grails.grails-gsp"
 
 ext {
     grailsVersion = project.grailsVersion
+    gradleWrapperVersion = project.gradleWrapperVersion
 }
 
 assets {
@@ -46,9 +47,10 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(path: ':', configuration: 'archives')
-    compile project(path: ':', configuration: 'default')
-    testCompile project(path: ':test-common', configuration: 'archives')
+    compile "org.grails.plugins:cookie-session:+"
+    testCompile("org.grails.plugins.cookie-session:test-common:+") {
+        transitive = false
+    }
 
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -72,4 +74,8 @@ dependencies {
     testRuntime 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.44.0'
 
     console "org.grails:grails-console"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = gradleWrapperVersion
 }

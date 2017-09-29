@@ -1,5 +1,5 @@
 
-grails.plugin.cookiesession.enabled = true
+grails.plugin.cookiesession.enabled = false
 grails.plugin.cookiesession.encryptcookie = true
 grails.plugin.cookiesession.cryptoalgorithm = "Blowfish"
 grails.plugin.cookiesession.condenseexceptions = true
