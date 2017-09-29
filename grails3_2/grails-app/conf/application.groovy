@@ -1,5 +1,5 @@
 
-grails.plugin.cookiesession.enabled = false
+grails.plugin.cookiesession.enabled = true
 grails.plugin.cookiesession.encryptcookie = true
 grails.plugin.cookiesession.cryptoalgorithm = "Blowfish"
 grails.plugin.cookiesession.condenseexceptions = true
@@ -8,7 +8,7 @@ grails.plugin.cookiesession.maxcookiesize = 2048
 grails.plugin.cookiesession.sethttponly = true
 grails.plugin.cookiesession.serializer = 'kryo'
 grails.plugin.cookiesession.springsecuritycompatibility = true
-grails.plugin.springsecurity.useSessionFixationPrevention == false
+grails.plugin.springsecurity.useSessionFixationPrevention = false
 
 // Added by the Spring Security Core plugin:
 grails.plugin.springsecurity.userLookup.userDomainClassName = 'grails3_2.User'
