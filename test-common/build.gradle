@@ -3,6 +3,7 @@ plugins {
 }
 ext {
     grailsVersion = rootProject.grailsVersion
+    gebVersion = '1.1.1'
 }
 dependencies {
     compile "org.codehaus.groovy:groovy-all:2.4.10"
@@ -12,4 +13,7 @@ dependencies {
     compile "org.grails:grails-dependencies:${grailsVersion}"
     compile "org.grails:grails-web-boot:${grailsVersion}"
     compile "org.grails:grails-plugin-testing:${grailsVersion}"
+    compile "org.gebish:geb-core:${gebVersion}"
+    compile "org.gebish:geb-spock:${gebVersion}"
+    compile "org.grails.plugins:geb:1.0.1"
 }
