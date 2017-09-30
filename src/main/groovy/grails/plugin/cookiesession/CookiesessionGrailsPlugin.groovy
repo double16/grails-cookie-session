@@ -1,9 +1,8 @@
 package grails.plugin.cookiesession
 
 import grails.plugins.*
-import org.springframework.boot.context.embedded.FilterRegistrationBean
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.core.Ordered
-import org.springframework.web.filter.DelegatingFilterProxy
 
 class CookiesessionGrailsPlugin extends Plugin {
 
@@ -19,7 +18,6 @@ class CookiesessionGrailsPlugin extends Plugin {
         "grails-app/views/error.gsp"
     ]
 
-    // TODO Fill in these fields
     def title = "Cookie Session Plugin" // Headline display name of the plugin
     def author = "Ben Lucchesi"
     def authorEmail = "benlucchesi@gmail.com"
@@ -86,28 +84,5 @@ The Cookie Session plugin enables grails applications to store session data in h
         }
 
       }
-    }
-
-    void doWithDynamicMethods() {
-        // TODO Implement registering dynamic methods to classes (optional)
-    }
-
-    void doWithApplicationContext() {
-        // TODO Implement post initialization spring config (optional)
-    }
-
-    void onChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
-    }
-
-    void onConfigChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when the project configuration changes.
-        // The event is the same as for 'onChange'.
-    }
-
-    void onShutdown(Map<String, Object> event) {
-        // TODO Implement code that is executed when the application shuts down (optional)
     }
 }
