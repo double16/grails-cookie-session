@@ -2,12 +2,21 @@ plugins {
     id 'groovy'
     id 'maven-publish'
 }
-version rootProject.version
+
 ext {
     grailsVersion = rootProject.grailsVersion
     gebVersion = '1.1.1'
 }
+
 group 'org.grails.plugins.cookie-session'
+version rootProject.version
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven { url "https://repo.grails.org/grails/core" }
+}
+
 dependencies {
     compile "org.codehaus.groovy:groovy-all:2.4.10"
     compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
