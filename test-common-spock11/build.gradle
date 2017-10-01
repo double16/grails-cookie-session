@@ -28,6 +28,8 @@ dependencies {
     compile "org.gebish:geb-core:${gebVersion}"
     compile "org.gebish:geb-spock:${gebVersion}"
     compile "org.grails.plugins:geb:1.0.1"
+    compile "org.spockframework:spock-core:1.1-groovy-2.4"
+    compile "org.spockframework:spock-spring:1.1-groovy-2.4"
 }
 publishing {
     publications {

@@ -76,7 +76,13 @@ The Cookie Session plugin enables grails applications to store session data in h
             bean.autowire = 'byName'
           }
 
-        cookieSessionFilter(FilterRegistrationBean){
+        def filterRegistrationBeanClass
+        try {
+            filterRegistrationBeanClass = Class.forName('org.springframework.boot.web.servlet.FilterRegistrationBean')
+        } catch (ClassNotFoundException e) {
+            filterRegistrationBeanClass = Class.forName('org.springframework.boot.context.embedded.FilterRegistrationBean')
+        }
+        cookieSessionFilter(filterRegistrationBeanClass){
           filter = bean(CookieSessionFilter){
             sessionRepository = ref("sessionRepository") 
           }

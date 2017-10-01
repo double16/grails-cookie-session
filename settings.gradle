@@ -1,6 +1,7 @@
 rootProject.name = 'cookie-session'
 
-include 'test-common'
+include 'test-common-spock10'
+include 'test-common-spock11'
 includeBuild 'grails3_3'
 includeBuild 'grails3_2'
 includeBuild 'grails3_1'
