@@ -18,12 +18,13 @@ jobs:
           command: |
             mkdir -p ${GRADLE_USER_HOME}
             echo "org.gradle.jvmargs=-Xmx384m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" >> ${GRADLE_USER_HOME}/gradle.properties
+            echo "org.gradle.daemon=false" >> ${GRADLE_USER_HOME}/gradle.properties
 
       - run:
           name: Configure Artifact Cache
           command: |
             set -x
-            if curl -s -f http://192.168.1.254:9081/service/local/status; then
+            if curl -s -f --connect-timeout=10 http://192.168.1.254:9081/service/local/status; then
               mkdir -p ${GRADLE_USER_HOME}
               cp -v /home/circleci/grails-cookie-session/.circleci/init.gradle ${GRADLE_USER_HOME}/init.gradle
               mkdir -p /home/circleci/grails-cookie-session/.gradle/circleci
