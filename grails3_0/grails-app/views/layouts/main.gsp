@@ -12,6 +12,12 @@
     </head>
     <body>
         <div id="grailsLogo" role="banner"><a href="http://grails.org"><asset:image src="grails_logo.png" alt="Grails"/></a></div>
+        <sec:ifLoggedIn>
+            <form action="${request.contextPath}/logout" method="POST">
+                Logout <sec:username/>
+                <button type="submit" class="btn logout">Logout</button>
+            </form>
+        </sec:ifLoggedIn>
         <g:layoutBody/>
         <div class="footer" role="contentinfo"></div>
         <div id="spinner" class="spinner" style="display:none;"><g:message code="spinner.alt" default="Loading&hellip;"/></div>

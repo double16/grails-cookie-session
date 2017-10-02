@@ -28,6 +28,12 @@
                         <asset:image src="grails-cupsonly-logo-white.svg"/>
                     </i> Grails
                 </a>
+                <sec:ifLoggedIn>
+                    <form class="navbar-form navbar-left" action="${request.contextPath}/logout" method="POST">
+                        Logout <sec:username/>
+                        <button type="submit" class="btn logout">Logout</button>
+                    </form>
+                </sec:ifLoggedIn>
             </div>
             <div class="navbar-collapse collapse" aria-expanded="false" style="height: 0.8px;">
                 <ul class="nav navbar-nav navbar-right">

@@ -63,6 +63,8 @@ trait SessionFixtureBase {
 
     abstract SerializableSession flashScopeSession()
 
+    abstract SerializableSession anonymousAuthenticatedSession()
+
     abstract SerializableSession authenticatedSession()
 
     abstract SerializableSession preauthWithSavedRequestSession()

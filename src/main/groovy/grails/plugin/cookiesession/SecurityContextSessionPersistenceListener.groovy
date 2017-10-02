@@ -65,6 +65,8 @@ public class SecurityContextSessionPersistenceListener implements SessionPersist
         log.trace "removed cookies from saved request in SPRING_SECURITY_SAVED_REQUEST" 
       }
 
+      // FIXME: remove 'cookie' header, or @headers altogether
+
       if( session.SPRING_SECURITY_CONTEXT != securityContextHolder.getContext() ){
         log.info "persisting security context to session"
         session.SPRING_SECURITY_CONTEXT = securityContextHolder.getContext()

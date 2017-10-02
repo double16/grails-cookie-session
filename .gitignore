@@ -7,7 +7,7 @@ stacktrace.log
 /target
 /out
 /web-app/WEB-INF/classes
-/build
+build/
 /*.zip
 /*.zip.sha1
 *.class
@@ -16,3 +16,4 @@ stacktrace.log
 *.ipr
 *.iws
 *.tld
+*.hprof
