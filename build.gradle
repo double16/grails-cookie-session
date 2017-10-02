@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
     ext {
         grailsVersion = project.grailsVersion
@@ -82,27 +84,35 @@ grailsPublish {
     developers = [benlucchesi:"Ben Lucchesi", double16:"Patrick Double"]
 }
 
-task test3_0(type: GradleBuild, group: 'verification') {
+task test3_0(type: Exec, group: 'verification') {
     dependsOn publishToMavenLocal
-    dir = 'grails3_0'
-    tasks = ['test']
+    workingDir 'grails3_0'
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'gradlew.bat', 'test'
+    } else {
+        commandLine './gradlew', 'test'
+    }
 }
 
-task integrationTest3_0(type: GradleBuild, group: 'verification') {
+task integrationTest3_0(type: Exec, group: 'verification') {
     dependsOn publishToMavenLocal
-    dir = 'grails3_0'
-    tasks = ['integrationTest']
+    workingDir 'grails3_0'
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'gradlew.bat', 'integrationTest'
+    } else {
+        commandLine './gradlew', 'integrationTest'
+    }
 }
 
 task testAll(group: 'verification') {
     dependsOn test
     dependsOn publishToMavenLocal
-    //dependsOn test3_0
+    dependsOn test3_0
     dependsOn gradle.includedBuilds*.task(':test')
 }
 
 task integrationTestAll(group: 'verification') {
     dependsOn publishToMavenLocal
-    //dependsOn integrationTest3_0
+    dependsOn integrationTest3_0
     dependsOn gradle.includedBuilds*.task(':integrationTest')
 }
