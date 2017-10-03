@@ -48,24 +48,21 @@ trait SessionFixture extends SessionFixtureBase {
     }
 
     SerializableSession authenticatedSession() {
-        SerializableSession session = flashScopeSession()
+        SerializableSession session = preauthWithSavedRequestSession()
 
         SecurityContextImpl securityContext = new SecurityContextImpl()
         Collection<GrantedAuthority> authorities = Collections.unmodifiableSet([new SimpleGrantedAuthority('ROLE_ADMIN')] as Set)
-        GrailsUser principal = new GrailsUser('admin', null, true, true, true, true, authorities, 1)
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null)
-        authentication.setAuthenticated(true)
+        GrailsUser principal = new GrailsUser('admin', 'password', true, true, true, true, authorities, 1)
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities)
         authentication.setDetails(createDetails('0:0:0:0:0:0:0:1', 'simplesession'))
         securityContext.setAuthentication(authentication)
         session.setAttribute('SPRING_SECURITY_CONTEXT', securityContext)
-
-        // FIXME: SPRING_SECURITY_SAVED_REQUEST still present after auth
 
         session
     }
 
     SerializableSession rememberMeSession() {
-        SerializableSession session = flashScopeSession()
+        SerializableSession session = preauthWithSavedRequestSession()
 
         SecurityContextImpl securityContext = new SecurityContextImpl()
         Collection<GrantedAuthority> authorities = Collections.unmodifiableSet([new SimpleGrantedAuthority('ROLE_ADMIN')] as Set)
@@ -75,8 +72,6 @@ trait SessionFixture extends SessionFixtureBase {
         authentication.setDetails(createDetails('0:0:0:0:0:0:0:1', 'simplesession'))
         securityContext.setAuthentication(authentication)
         session.setAttribute('SPRING_SECURITY_CONTEXT', securityContext)
-
-        // FIXME: SPRING_SECURITY_SAVED_REQUEST still present after auth
 
         session
     }

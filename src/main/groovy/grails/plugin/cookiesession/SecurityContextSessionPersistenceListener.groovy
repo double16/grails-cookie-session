@@ -16,63 +16,57 @@
  *  Ben Lucchesi
  *  ben@granicus.com or benlucchesi@gmail.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
-
+import grails.core.GrailsApplication
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
+import org.springframework.security.web.savedrequest.SavedRequest
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+@Slf4j
+class SecurityContextSessionPersistenceListener implements SessionPersistenceListener, InitializingBean {
+    static final String SPRING__SECURITY__CONTEXT = 'SPRING_SECURITY_CONTEXT'
+    // needed for backwards compatibility
+    static
+    final List<String> SPRING_SECURITY_SAVED_REQUEST = ['SPRING_SECURITY_SAVED_REQUEST_KEY', 'SPRING_SECURITY_SAVED_REQUEST']
 
-public class SecurityContextSessionPersistenceListener implements SessionPersistenceListener, InitializingBean {
+    GrailsApplication grailsApplication
+    Class securityContextHolder
 
-    final static Logger log = LoggerFactory.getLogger(SecurityContextSessionPersistenceListener.class.getName());
+    String cookieName = 'gsession'
 
-    def grailsApplication
-    def securityContextHolder
+    @Override
+    void afterPropertiesSet() {
+        log.trace 'afterPropertiesSet()'
+        if (grailsApplication.config.grails.plugin.cookiesession.containsKey('cookiename')) {
+            cookieName = grailsApplication.config.grails.plugin.cookiesession.cookiename
+        }
 
-    String cookieName = "gsession"
-    
-    void afterPropertiesSet(){
-      log.trace "afterPropertiesSet()"
-      if( grailsApplication.config.grails.plugin.cookiesession.containsKey('cookiename') ){
-        cookieName = grailsApplication.config.grails.plugin.cookiesession.cookiename
-      }
-
-      securityContextHolder = grailsApplication.classLoader.loadClass("org.springframework.security.core.context.SecurityContextHolder")
+        securityContextHolder = grailsApplication.classLoader.loadClass('org.springframework.security.core.context.SecurityContextHolder')
     }
 
-    public void afterSessionRestored( SerializableSession session ){
+    @Override
+    void afterSessionRestored(SerializableSession session) {
     }
 
-    public void beforeSessionSaved( SerializableSession session ){
-      log.trace "beforeSessionSaved()"
-      
-      // needed for backwards compatibility
-      if( session.SPRING_SECURITY_SAVED_REQUEST_KEY){
-        def sessionCookies = session.SPRING_SECURITY_SAVED_REQUEST_KEY.@cookies.findAll{ it.name =~ cookieName }
-        sessionCookies.each{
-          session.SPRING_SECURITY_SAVED_REQUEST_KEY.@cookies.remove(it)
-        }
-        log.trace "removed cookies from saved request in SPRING_SECURITY_SAVED_REQUEST_KEY" 
-      }
-      
-      if( session.SPRING_SECURITY_SAVED_REQUEST ){
-        def sessionCookies = session.SPRING_SECURITY_SAVED_REQUEST.@cookies.findAll{ it.name =~ cookieName }
-        sessionCookies.each{
-          session.SPRING_SECURITY_SAVED_REQUEST.@cookies.remove(it)
-        }
-        log.trace "removed cookies from saved request in SPRING_SECURITY_SAVED_REQUEST" 
-      }
+    @Override
+    void beforeSessionSaved(SerializableSession session) {
+        log.trace 'beforeSessionSaved()'
 
-      // FIXME: remove 'cookie' header, or @headers altogether
+        SPRING_SECURITY_SAVED_REQUEST.each { savedRequestKey ->
+            SavedRequest sr = (SavedRequest) session.getAttribute(savedRequestKey)
+            if (sr) {
+                sr.@cookies.removeIf { it.name ==~ cookieName }
+                sr.@headers.keySet().removeIf { it.toLowerCase() == 'cookie' }
+                log.trace 'removed cookies from saved request in {}', savedRequestKey
+            }
+        }
 
-      if( session.SPRING_SECURITY_CONTEXT != securityContextHolder.getContext() ){
-        log.info "persisting security context to session"
-        session.SPRING_SECURITY_CONTEXT = securityContextHolder.getContext()
-      }
-      else{
-        log.trace "not persisting security context"
-      }
+        if (session.getAttribute(SPRING__SECURITY__CONTEXT) && !session.getAttribute(SPRING__SECURITY__CONTEXT).is(securityContextHolder.getContext())) {
+            log.info 'persisting security context to session'
+            session.setAttribute(SPRING__SECURITY__CONTEXT, securityContextHolder.getContext())
+        } else {
+            log.trace 'not persisting security context'
+        }
     }
 }

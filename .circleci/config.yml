@@ -45,7 +45,7 @@ jobs:
       - run:
           name: Unit Test Grails Versions 3.0-3.3
           command: |
-            ./gradlew -s --continue testAll
+            ./gradlew -s --continue check testAll cloverGenerateReport
 
       - run:
           name: Integration Test Grails Versions 3.0-3.3
@@ -86,6 +86,12 @@ jobs:
       - store_artifacts:
           path: ./grails3_3/build/reports
           destination: grails-3.3
+      - store_artifacts:
+          path: ./build/reports/clover
+          destination: code_coverage
+      - store_artifacts:
+          path: ./build/reports/codenarc
+          destination: codenarc
 
       - deploy:
           name: Publish Plugin

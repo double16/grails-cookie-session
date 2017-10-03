@@ -16,11 +16,11 @@
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
+interface SessionSerializer {
 
-public interface SessionSerializer{
+    byte[] serialize(SerializableSession session)
 
-  public byte[] serialize(SerializableSession session);
-  public SerializableSession deserialize(byte[] serializedSession);
+    SerializableSession deserialize(byte[] serializedSession)
 }

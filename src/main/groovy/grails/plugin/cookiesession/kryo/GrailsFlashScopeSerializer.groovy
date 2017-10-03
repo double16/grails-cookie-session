@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 @CompileStatic
 class GrailsFlashScopeSerializer extends Serializer<GrailsFlashScope> {
-    static Field CURRENT_FIELD = GrailsFlashScope.getDeclaredField('current')
-    static Field NEXT_FIELD = GrailsFlashScope.getDeclaredField('next')
+    static final Field CURRENT_FIELD = GrailsFlashScope.getDeclaredField('current')
+    static final Field NEXT_FIELD = GrailsFlashScope.getDeclaredField('next')
     static {
         CURRENT_FIELD.setAccessible(true)
         NEXT_FIELD.setAccessible(true)
@@ -40,7 +40,7 @@ class GrailsFlashScopeSerializer extends Serializer<GrailsFlashScope> {
     GrailsFlashScope read(Kryo kryo, Input input, Class<GrailsFlashScope> type) {
         Map current = kryo.readObject(input, ConcurrentHashMap, mapSerializer)
         Map next = kryo.readObject(input, ConcurrentHashMap, mapSerializer)
-        GrailsFlashScope gfs = new GrailsFlashScope()
+        GrailsFlashScope gfs = kryo.newInstance(GrailsFlashScope)
         CURRENT_FIELD.set(gfs, current)
         NEXT_FIELD.set(gfs, next)
         return gfs

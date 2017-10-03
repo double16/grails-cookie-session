@@ -47,4 +47,30 @@ abstract class SessionTests extends Specification {
         and:
         serialized.length() < maxSessionSize()
     }
+
+    @Test
+    void "serialize authenticated session"() {
+        given:
+        def session = authenticatedSession()
+        when:
+        def serialized = serializeSession(session)
+        def session2 = deserializeSession(serialized)
+        then:
+        equals(session, session2)
+        and:
+        serialized.length() < maxSessionSize()
+    }
+
+    @Test
+    void "serialize pre-auth session"() {
+        given:
+        def session = preauthWithSavedRequestSession()
+        when:
+        def serialized = serializeSession(session)
+        def session2 = deserializeSession(serialized)
+        then:
+        equals(session, session2)
+        and:
+        serialized.length() < maxSessionSize()
+    }
 }

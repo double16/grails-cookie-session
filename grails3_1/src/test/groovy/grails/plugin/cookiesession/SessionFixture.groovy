@@ -7,6 +7,7 @@ import org.grails.web.util.GrailsApplicationAttributes
  * Helpers for creating and comparing sessions in tests.
  */
 trait SessionFixture extends SessionFixtureBase {
+    @Override
     SerializableSession flashScopeSession() {
         GrailsFlashScope scope = new GrailsFlashScope()
         scope['flash_key1'] = 'string1'
@@ -16,12 +17,18 @@ trait SessionFixture extends SessionFixtureBase {
         session
     }
 
+    @Override
     SerializableSession authenticatedSession() {
         throw new UnsupportedOperationException()
     }
 
+    @Override
     SerializableSession preauthWithSavedRequestSession() {
         throw new UnsupportedOperationException()
     }
 
+    @Override
+    SerializableSession anonymousAuthenticatedSession() {
+        throw new UnsupportedOperationException()
+    }
 }

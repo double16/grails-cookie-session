@@ -16,14 +16,15 @@
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 interface SessionRepository {
-  SerializableSession restoreSession( HttpServletRequest request )
-  void saveSession( SerializableSession session, HttpServletResponse response )
-  boolean isSessionIdValid(String sessionId)
+    SerializableSession restoreSession(HttpServletRequest request)
+
+    void saveSession(SerializableSession session, HttpServletResponse response)
+
+    boolean isSessionIdValid(String sessionId)
 }

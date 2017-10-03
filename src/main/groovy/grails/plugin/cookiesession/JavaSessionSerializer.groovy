@@ -16,51 +16,47 @@
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
+import grails.core.GrailsApplication
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-import grails.core.DefaultGrailsApplication
-import java.io.ByteArrayOutputStream;
+@CompileStatic
+@Slf4j
+class JavaSessionSerializer implements SessionSerializer {
+    GrailsApplication grailsApplication
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-class JavaSessionSerializer implements SessionSerializer{
-
-  final static Logger log = LoggerFactory.getLogger(JavaSessionSerializer.class.getName());
-
-  def grailsApplication
-
-  public byte[] serialize(SerializableSession session){
-    log.trace "serializeSession()"
-    ByteArrayOutputStream stream = new ByteArrayOutputStream()
-    def output = new ObjectOutputStream(stream)
-    output.writeObject(session)
-    output.close()
-    byte[] bytes = stream.toByteArray() 
-    log.trace "serialized session. ${bytes.size()} bytes."
-    return bytes
-  }
-
-  public SerializableSession deserialize(byte[] serializedSession){
-
-    log.trace "deserializeSession()"
-
-    def inputStream = new ObjectInputStream(new ByteArrayInputStream( serializedSession )){
-      @Override
-      public Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-        //noinspection GroovyUnusedCatchParameter
-        try {
-          return grailsApplication.classLoader.loadClass(desc.getName())
-        } catch (ClassNotFoundException ex) {
-          return Class.forName(desc.getName())
-        }
-      }
+    byte[] serialize(SerializableSession session) {
+        log.trace 'serializeSession()'
+        ByteArrayOutputStream stream = new ByteArrayOutputStream()
+        ObjectOutputStream output = new ObjectOutputStream(stream)
+        output.writeObject(session)
+        output.close()
+        byte[] bytes = stream.toByteArray()
+        log.trace 'serialized session. {} bytes.', bytes.length
+        return bytes
     }
 
-    SerializableSession session = (SerializableSession)inputStream.readObject();
-    
-    log.trace "deserialized session."
-    return session
-  }
+    SerializableSession deserialize(byte[] serializedSession) {
+
+        log.trace 'deserializeSession()'
+
+        def inputStream = new ObjectInputStream(new ByteArrayInputStream(serializedSession)) {
+            @Override
+            Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+                //noinspection GroovyUnusedCatchParameter
+                try {
+                    return grailsApplication.classLoader.loadClass(desc.getName())
+                } catch (ClassNotFoundException ex) {
+                    return Class.forName(desc.getName())
+                }
+            }
+        }
+
+        SerializableSession session = (SerializableSession) inputStream.readObject()
+
+        log.trace 'deserialized session.'
+        return session
+    }
 }

@@ -4,6 +4,7 @@ import grails.config.Config
 import grails.plugin.cookiesession.mock.MockConfig
 import grails.plugin.cookiesession.mock.MockCookieSessionPluginManager
 import grails.plugin.cookiesession.mock.MockGrailsApplication
+import org.apache.commons.lang.builder.EqualsBuilder
 import org.grails.spring.GrailsApplicationContext
 import org.springframework.beans.MutablePropertyValues
 import org.springframework.beans.factory.support.GenericBeanDefinition
@@ -38,10 +39,12 @@ trait SessionFixtureBase {
 
     boolean equals(HttpSession session1, HttpSession session2) {
         Set<String> attributeNames = session1.attributeNames.toSet()
-        if (!attributeNames.equals(session2.attributeNames.toSet())) {
+        if (attributeNames != session2.attributeNames.toSet()) {
             return false
         }
-        attributeNames.find { session1.getAttribute(it) != session2.getAttribute(it) } == null
+        attributeNames.find {
+            !EqualsBuilder.reflectionEquals(session1.getAttribute(it), session2.getAttribute(it))
+        } == null
     }
 
     CookieSessionRepository getCookieSessionRepository() {

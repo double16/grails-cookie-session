@@ -16,10 +16,10 @@
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
+interface SessionPersistenceListener {
+    void afterSessionRestored(SerializableSession session)
 
-interface SessionPersistenceListener{
-  void afterSessionRestored( SerializableSession session )
-  void beforeSessionSaved( SerializableSession session )
+    void beforeSessionSaved(SerializableSession session)
 }

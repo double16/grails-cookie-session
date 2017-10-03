@@ -1,7 +1,6 @@
 package grails.plugin.cookiesession
 
-import grails.plugins.*
-import org.springframework.boot.web.servlet.FilterRegistrationBean
+import grails.plugins.Plugin
 import org.springframework.core.Ordered
 
 class CookiesessionGrailsPlugin extends Plugin {
@@ -15,7 +14,7 @@ class CookiesessionGrailsPlugin extends Plugin {
 
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-        "grails-app/views/error.gsp"
+            "grails-app/views/error.gsp"
     ]
 
     def title = "Cookie Session Plugin" // Headline display name of the plugin
@@ -28,15 +27,15 @@ The Cookie Session plugin enables grails applications to store session data in h
     def profiles = ['web']
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/cookiesession"
+    def documentation = 'http://grails.org/plugin/cookiesession'
 
     // Extra (optional) plugin metadata
 
     // License: one of 'APACHE', 'GPL2', 'GPL3'
-    def license = "APACHE"
+    def license = 'APACHE'
 
     // Details of company behind the plugin (if there is one)
-    def organization = [ name: "Accuracy Software, LTD", url: "http://www.benlucchesi.com/" ]
+    def organization = [name: "Accuracy Software, LTD", url: "http://www.benlucchesi.com/"]
 
     // Any additional developers beyond the author specified above.
 //    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
@@ -45,50 +44,51 @@ The Cookie Session plugin enables grails applications to store session data in h
 //    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
 
     // Online location of the plugin's browseable source code.
-    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
+    def scm = [url: "http://svn.codehaus.org/grails-plugins/"]
 
-    Closure doWithSpring() { {->
+    Closure doWithSpring() {
+        { ->
 
-        if ( !config.grails.plugin.cookiesession.enabled ) {
-            return
+            if (!config.grails.plugin.cookiesession.enabled) {
+                return
+            }
+
+            sessionRepository(CookieSessionRepository) { bean ->
+                bean.autowire = 'byName'
+            }
+
+            if (config.grails.plugin.cookiesession.containsKey('condenseexceptions') &&
+                    config.grails.plugin.cookiesession['condenseexceptions'] == true)
+                exceptionCondenser(ExceptionCondenser)
+
+            // ALWAYS CONFIGURED!
+            javaSessionSerializer(JavaSessionSerializer) { bean ->
+                bean.autowire = 'byName'
+            }
+
+            if (config.grails.plugin.cookiesession.containsKey('serializer') && config.grails.plugin.cookiesession['serializer'] == "kryo")
+                kryoSessionSerializer(KryoSessionSerializer) { bean ->
+                    bean.autowire = 'byName'
+                }
+
+            if (config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility') && config.grails.plugin.cookiesession['springsecuritycompatibility'] == true)
+                securityContextSessionPersistenceListener(SecurityContextSessionPersistenceListener) { bean ->
+                    bean.autowire = 'byName'
+                }
+
+            def filterRegistrationBeanClass
+            try {
+                filterRegistrationBeanClass = Class.forName('org.springframework.boot.web.servlet.FilterRegistrationBean')
+            } catch (ClassNotFoundException e) {
+                filterRegistrationBeanClass = Class.forName('org.springframework.boot.context.embedded.FilterRegistrationBean')
+            }
+            cookieSessionFilter(filterRegistrationBeanClass) {
+                filter = bean(CookieSessionFilter) {
+                    sessionRepository = ref('sessionRepository')
+                }
+                order = Ordered.HIGHEST_PRECEDENCE + 25
+            }
+
         }
-
-        sessionRepository(CookieSessionRepository){ bean ->
-          bean.autowire = 'byName'
-        }
-
-        if( config.grails.plugin.cookiesession.containsKey("condenseexceptions") && 
-            config.grails.plugin.cookiesession["condenseexceptions"] == true ) 
-          exceptionCondenser(ExceptionCondenser)
-
-        // ALWAYS CONFIGURED!
-        javaSessionSerializer(JavaSessionSerializer){ bean ->
-          bean.autowire = 'byName'
-        }
-
-        if( config.grails.plugin.cookiesession.containsKey("serializer") && config.grails.plugin.cookiesession["serializer"] == "kryo" )
-          kryoSessionSerializer(KryoSessionSerializer){ bean ->
-            bean.autowire = 'byName'
-          }
-
-        if( config.grails.plugin.cookiesession.containsKey("springsecuritycompatibility") &&  config.grails.plugin.cookiesession["springsecuritycompatibility"] == true )
-          securityContextSessionPersistenceListener(SecurityContextSessionPersistenceListener){ bean ->
-            bean.autowire = 'byName'
-          }
-
-        def filterRegistrationBeanClass
-        try {
-            filterRegistrationBeanClass = Class.forName('org.springframework.boot.web.servlet.FilterRegistrationBean')
-        } catch (ClassNotFoundException e) {
-            filterRegistrationBeanClass = Class.forName('org.springframework.boot.context.embedded.FilterRegistrationBean')
-        }
-        cookieSessionFilter(filterRegistrationBeanClass){
-          filter = bean(CookieSessionFilter){
-            sessionRepository = ref("sessionRepository") 
-          }
-          order = Ordered.HIGHEST_PRECEDENCE + 25
-        }
-
-      }
     }
 }
