@@ -16,7 +16,6 @@
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
  */
-
 package grails.plugin.cookiesession
 
 import groovy.transform.CompileStatic
@@ -31,8 +30,8 @@ class ExceptionCondenser implements SessionPersistenceListener {
 
     @Override
     void beforeSessionSaved(SerializableSession session) {
-        // loop through the attributes and condense each exception to just its exception
-        for (String key : session.valueNames) {
+        // loop through the attributes and condense each exception to just its message
+        for (String key : session.attributeNames) {
             if (session.getAttribute(key) instanceof Exception) {
                 log.trace('condensing exception: {}', key)
                 Exception excp = (Exception) session.getAttribute(key)

@@ -42,14 +42,14 @@ class JavaSessionSerializer implements SessionSerializer {
 
         log.trace 'deserializeSession()'
 
-        def inputStream = new ObjectInputStream(new ByteArrayInputStream(serializedSession)) {
+        ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(serializedSession)) {
             @Override
             Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
                 //noinspection GroovyUnusedCatchParameter
                 try {
-                    return grailsApplication.classLoader.loadClass(desc.getName())
+                    return grailsApplication.classLoader.loadClass(desc.name)
                 } catch (ClassNotFoundException ex) {
-                    return Class.forName(desc.getName())
+                    return Class.forName(desc.name)
                 }
             }
         }

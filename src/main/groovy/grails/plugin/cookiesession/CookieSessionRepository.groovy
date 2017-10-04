@@ -177,9 +177,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             serializer = 'javaSessionSerializer'
         } else if (serializer == 'kryo') {
             serializer = 'kryoSessionSerializer'
-        } else if (applicationContext.containsBean(serializer) && applicationContext.getType(serializer) instanceof SessionSerializer) {
-
-        } else {
+        } else if (!(applicationContext.containsBean(serializer) && applicationContext.getType(serializer) instanceof SessionSerializer)) {
             log.error 'no valid serializer configured. defaulting to java'
             serializer = 'javaSessionSerializer'
         }
@@ -243,8 +241,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         // initialize the crypto key
         if (cryptoSecret == null) {
-            def keyGenerator = KeyGenerator.getInstance(cryptoAlgorithm.split('/')[0])
-            def secureRandom = new SecureRandom()
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(cryptoAlgorithm.split('/')[0])
+            SecureRandom secureRandom = new SecureRandom()
             keyGenerator.init(secureRandom)
             cryptoKey = keyGenerator.generateKey()
         } else {
@@ -319,6 +317,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     session.isNewSession = false
                     session.lastAccessedTime = System.currentTimeMillis()
                     session.servletContext = request.servletContext
+                    session.dirty = false
                 } else if (inactiveInterval > maxInactiveIntervalMillis) {
                     log.info 'retrieved expired session from cookie. lastAccessedTime: {}. expired by {} ms.', new Date(lastAccessedTime), inactiveInterval
                     session = null
@@ -341,10 +340,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         String serializedSession = serializeSession(session)
 
-        if (session.isValid)
+        if (session.isValid) {
             putDataInCookie(response, serializedSession)
-        else
+        } else {
             deleteCookie(response)
+        }
     }
 
     String serializeSession(SerializableSession session) {
@@ -390,11 +390,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     SerializableSession deserializeSession(String serializedSession, HttpServletRequest request) {
         log.trace 'deserializeSession()'
 
-        def session
+        SerializableSession session
 
         try {
             log.trace 'decodeBase64 serialized session from {} bytes.', serializedSession.size()
-            def input = serializedSession.decodeBase64()
+            byte[] input = serializedSession.decodeBase64()
 
             if (encryptCookie) {
                 log.trace 'decrypting serialized session from {} bytes.', input.length
@@ -417,10 +417,10 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             }
 
             log.trace 'decompressing serialized session from {} bytes', input.length
-            def inputStream = new GZIPInputStream(new ByteArrayInputStream(input))
-            def outputStream = new ByteArrayOutputStream(input.length*2)
+            InputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(input))
+            OutputStream outputStream = new ByteArrayOutputStream(input.length * 2)
 
-            byte[] buffer = new byte[1024]
+            byte[] buffer = new byte[input.length]
             int bytesRead
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead)
@@ -435,12 +435,13 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
         catch (excp) {
             log.error 'An error occurred while deserializing a session.', excp
-            if (log.isDebugEnabled())
+            if (log.isDebugEnabled()) {
                 log.debug "Serialized-session: '$serializedSession'\n" +
                         "request-uri: ${request.requestURI}" +
                         request.headerNames.toList().inject('') { str, name ->
                             request.getHeaders(name).inject(str) { str2, val -> "$str2\n$name: $val" }
                         }
+            }
             session = null
         }
 
@@ -461,7 +462,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         int inputLength = input.size()
 
-        def partitions = Math.ceil(inputLength / maxCookieSize)
+        int partitions = Math.ceil(inputLength / maxCookieSize)
         log.trace 'splitting input of size {} string into {} paritions', input.size(), partitions
 
         for (int i = 0; i < partitions; i++) {
@@ -489,7 +490,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
 
         String data = values.join()
-        log.debug "retrieved {} bytes of data from {} session cookies.", data.size(), values.size()
+        log.debug 'retrieved {} bytes of data from {} session cookies.', data.size(), values.size()
 
         return data
     }
@@ -502,10 +503,10 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         if (value.length() > maxCookieSize * cookieCount) {
             log.error "Serialized session exceeds maximum session size that can be stored in cookies. Max size: ${maxCookieSize * cookieCount}, Requested Session Size: ${value.length()}."
-            throw new Exception('Serialized session exceeded max size.')
+            throw new IOException('Serialized session exceeded max size.')
         }
 
-        def partitions = splitString(value)
+        String[] partitions = splitString(value)
         partitions.eachWithIndex { it, i ->
             if (it) {
                 Cookie c = createCookie(i, it, maxInactiveInterval)
@@ -540,13 +541,16 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         c.secure = secure
         c.path = path
 
-        if (servletContext?.majorVersion >= 3)
+        if (servletContext?.majorVersion >= 3) {
             c.httpOnly = httpOnly
+        }
 
-        if (domain)
+        if (domain) {
             c.domain = domain
-        if (comment)
+        }
+        if (comment) {
             c.comment = comment
+        }
 
         if (log.isTraceEnabled()) {
             if (servletContext?.majorVersion >= 3) {

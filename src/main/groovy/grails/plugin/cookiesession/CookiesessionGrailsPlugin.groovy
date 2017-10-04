@@ -8,22 +8,20 @@ class CookiesessionGrailsPlugin extends Plugin {
     //def version = "3.0"
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.0.0 > *"
+    def grailsVersion = '3.0.0 > *'
 
     def loadAfter = ['controllers']
 
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            "grails-app/views/error.gsp"
+            'grails-app/views/error.gsp',
     ]
 
-    def title = "Cookie Session Plugin" // Headline display name of the plugin
-    def author = "Ben Lucchesi"
-    def authorEmail = "benlucchesi@gmail.com"
-    def description = '''\
-The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server. This allows application deployments to be more stateless which supports simplified scaling architectures and fault tolerance." 
-    def documentation = "http://github.com/benlucchesi/grails-cookie-session-v2
-'''
+    def title = 'Cookie Session Plugin' // Headline display name of the plugin
+    def author = 'Ben Lucchesi'
+    def authorEmail = 'benlucchesi@gmail.com'
+    def description = '''
+The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server. This allows application deployments to be more stateless which supports simplified scaling architectures and fault tolerance.'''
     def profiles = ['web']
 
     // URL to the plugin's documentation
@@ -35,7 +33,7 @@ The Cookie Session plugin enables grails applications to store session data in h
     def license = 'APACHE'
 
     // Details of company behind the plugin (if there is one)
-    def organization = [name: "Accuracy Software, LTD", url: "http://www.benlucchesi.com/"]
+    def organization = [name: 'Accuracy Software, LTD', url: 'http://www.benlucchesi.com/']
 
     // Any additional developers beyond the author specified above.
 //    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
@@ -44,7 +42,7 @@ The Cookie Session plugin enables grails applications to store session data in h
 //    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
 
     // Online location of the plugin's browseable source code.
-    def scm = [url: "http://svn.codehaus.org/grails-plugins/"]
+    def scm = [url: 'http://svn.codehaus.org/grails-plugins/']
 
     Closure doWithSpring() {
         { ->
@@ -58,25 +56,28 @@ The Cookie Session plugin enables grails applications to store session data in h
             }
 
             if (config.grails.plugin.cookiesession.containsKey('condenseexceptions') &&
-                    config.grails.plugin.cookiesession['condenseexceptions'] == true)
+                    config.grails.plugin.cookiesession['condenseexceptions'] == true) {
                 exceptionCondenser(ExceptionCondenser)
+            }
 
             // ALWAYS CONFIGURED!
             javaSessionSerializer(JavaSessionSerializer) { bean ->
                 bean.autowire = 'byName'
             }
 
-            if (config.grails.plugin.cookiesession.containsKey('serializer') && config.grails.plugin.cookiesession['serializer'] == "kryo")
+            if (config.grails.plugin.cookiesession.containsKey('serializer') && config.grails.plugin.cookiesession['serializer'] == 'kryo') {
                 kryoSessionSerializer(KryoSessionSerializer) { bean ->
                     bean.autowire = 'byName'
                 }
+            }
 
-            if (config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility') && config.grails.plugin.cookiesession['springsecuritycompatibility'] == true)
+            if (config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility') && config.grails.plugin.cookiesession['springsecuritycompatibility'] == true) {
                 securityContextSessionPersistenceListener(SecurityContextSessionPersistenceListener) { bean ->
                     bean.autowire = 'byName'
                 }
+            }
 
-            def filterRegistrationBeanClass
+            Class filterRegistrationBeanClass
             try {
                 filterRegistrationBeanClass = Class.forName('org.springframework.boot.web.servlet.FilterRegistrationBean')
             } catch (ClassNotFoundException e) {

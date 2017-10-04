@@ -21,6 +21,8 @@ package grails.plugin.cookiesession
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
+import com.esotericsoftware.kryo.pool.KryoFactory
+import com.esotericsoftware.kryo.pool.KryoPool
 import com.esotericsoftware.kryo.serializers.DefaultArraySerializers
 import com.esotericsoftware.kryo.serializers.DefaultSerializers
 import de.javakaffee.kryoserializers.*
@@ -40,11 +42,10 @@ import java.lang.reflect.InvocationHandler
 
 @Slf4j
 class KryoSessionSerializer implements SessionSerializer, InitializingBean {
-
     GrailsApplication grailsApplication
+    KryoPool kryoPool
 
     boolean springSecurityCompatibility = false
-
     String springSecurityPluginVersion
 
     void afterPropertiesSet() {
@@ -61,30 +62,31 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
         if (springSecurityCompatibility) {
             log.trace 'Kryo serializer detected spring security plugin version: {}', springSecurityPluginVersion
         }
+
+        kryoPool = new KryoPool.Builder({ getConfiguredKryoSerializer() } as KryoFactory).softReferences().build()
     }
 
     byte[] serialize(SerializableSession session) {
-        log.trace 'starting serialize session'
-
-        Kryo kryo = getConfiguredKryoSerializer()
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
-        Output output = new Output(outputStream)
-        kryo.writeObject(output, session)
-        output.close()
-        byte[] bytes = outputStream.toByteArray()
-        log.trace 'finished serializing session: {}', bytes
-
-        return bytes
+        kryoPool.run({ Kryo kryo ->
+            log.trace 'starting serialize session'
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
+            Output output = new Output(outputStream)
+            kryo.writeObject(output, session)
+            output.close()
+            byte[] bytes = outputStream.toByteArray()
+            log.trace 'finished serializing session: {}', bytes
+            return bytes
+        })
     }
 
     SerializableSession deserialize(byte[] serializedSession) {
-        log.trace 'starting deserializing session'
-        Input input = new Input(new ByteArrayInputStream(serializedSession))
-        Kryo kryo = getConfiguredKryoSerializer()
-        SerializableSession session = kryo.readObject(input, SerializableSession)
-        log.trace 'finished deserializing session: {}', session
-
-        return session
+        kryoPool.run({ Kryo kryo ->
+            log.trace 'starting deserializing session'
+            Input input = new Input(new ByteArrayInputStream(serializedSession))
+            SerializableSession session = kryo.readObject(input, SerializableSession)
+            log.trace 'finished deserializing session: {}', session
+            return session
+        })
     }
 
     private Kryo getConfiguredKryoSerializer() {

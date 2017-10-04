@@ -69,6 +69,11 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
             return
         }
 
+        if (!session.dirty && !session.isNew()) {
+            log.trace('session is not dirty, not saving.')
+            return
+        }
+
         // flag the session as saved.
         sessionSaved = true
 
@@ -100,6 +105,7 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
     }
 
     @Override
+    @SuppressWarnings("Deprecated")
     void setStatus(int sc, String sm) {
         log.trace('intercepting setStatus({}, {}) to save session', sc, sm)
         this.saveSession()

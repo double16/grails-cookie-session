@@ -20,6 +20,7 @@ package grails.plugin.cookiesession
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.apache.commons.io.output.NullOutputStream
 import org.apache.commons.lang.builder.ReflectionToStringBuilder
 import org.apache.commons.lang.builder.ToStringStyle
 
@@ -28,6 +29,8 @@ import javax.servlet.http.HttpSession
 import javax.servlet.http.HttpSessionBindingEvent
 import javax.servlet.http.HttpSessionBindingListener
 import javax.servlet.http.HttpSessionContext
+import java.security.DigestOutputStream
+import java.security.MessageDigest
 
 @CompileStatic
 @Slf4j
@@ -38,21 +41,21 @@ class SerializableSession implements HttpSession, Serializable {
     private
     static final HttpSessionContext SESSION_CONTEXT = new HttpSessionContext() {
         HttpSession getSession(String sessionId) {
-            return null
+            null
         }
 
         Enumeration<String> getIds() {
-            return SESSION_CONTEXT_ID_ENUM
+            SESSION_CONTEXT_ID_ENUM
         }
     }
 
     private static final Enumeration<String> SESSION_CONTEXT_ID_ENUM = new Enumeration<String>() {
         String nextElement() {
-            return null
+            throw new NoSuchElementException()
         }
 
         boolean hasMoreElements() {
-            return false
+            false
         }
     }
 
@@ -61,7 +64,10 @@ class SerializableSession implements HttpSession, Serializable {
     long lastAccessedTime = 0
     private Map<String, Serializable> attributes
 
-    transient Boolean isValid = true
+    transient boolean isValid = true
+    transient boolean dirty = false
+    /** digest of 'clean' session, used for dirty checking */
+    transient byte[] digest
     transient ServletContext servletContext
     transient private boolean newSession
     transient int maxInactiveInterval
@@ -108,6 +114,7 @@ class SerializableSession implements HttpSession, Serializable {
     }
 
     void setAttribute(String name, Object value) {
+        dirty = true
         Object oldValue = attributes.put(name, (Serializable) value)
         if (value instanceof HttpSessionBindingListener) {
             try {
@@ -133,6 +140,9 @@ class SerializableSession implements HttpSession, Serializable {
 
     void removeAttribute(String name) {
         Object value = attributes.remove(name)
+        if (value != null) {
+            dirty = true
+        }
         if (value instanceof HttpSessionBindingListener) {
             try {
                 ((HttpSessionBindingListener) value).valueUnbound(new HttpSessionBindingEvent(this, name))
@@ -157,6 +167,42 @@ class SerializableSession implements HttpSession, Serializable {
 
     boolean isNew() {
         this.newSession
+    }
+
+    void setDirty(boolean dirty) {
+        if (!dirty && this.dirty) {
+            digest = digestOfSession()
+        }
+        this.dirty = dirty
+    }
+
+    boolean isDirty() {
+        if (dirty) {
+            return true
+        }
+        // dirty checking is difficult because the properties of the attribute values could have changed, we keep a digest
+        // of the last time the session was set to clean for comparison
+        if (digest != null) {
+            if (digest != digestOfSession()) {
+                dirty = true
+            }
+        }
+        return dirty
+    }
+
+    /**
+     * Compute a digest of the session to be used for dirty checking.
+     * @return
+     */
+    private byte[] digestOfSession() {
+        log.trace 'computing digest of session'
+        DigestOutputStream stream = new DigestOutputStream(new NullOutputStream(), MessageDigest.getInstance('MD5'))
+        ObjectOutputStream output = new ObjectOutputStream(stream)
+        output.writeObject(attributes)
+        output.close()
+        byte[] digest = stream.messageDigest.digest()
+        log.trace 'digest of session of session is {}', digest
+        digest
     }
 
     @Override
