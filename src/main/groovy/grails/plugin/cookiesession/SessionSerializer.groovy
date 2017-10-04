@@ -20,9 +20,7 @@ package grails.plugin.cookiesession
 
 interface SessionSerializer {
 
-    // FIXME: serialize to an OutputStream so we can stream directly into compression and encryption
-    byte[] serialize(SerializableSession session)
+    void serialize(SerializableSession session, OutputStream outputStream)
 
-    // FIXME: deserialize from an InputStream so we can stream directly from compression and encryption
-    SerializableSession deserialize(byte[] serializedSession)
+    SerializableSession deserialize(InputStream serializedSession)
 }

@@ -66,23 +66,19 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
         kryoPool = new KryoPool.Builder({ getConfiguredKryoSerializer() } as KryoFactory).softReferences().build()
     }
 
-    byte[] serialize(SerializableSession session) {
+    void serialize(SerializableSession session, OutputStream outputStream) {
         kryoPool.run({ Kryo kryo ->
             log.trace 'starting serialize session'
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
             Output output = new Output(outputStream)
             kryo.writeObject(output, session)
             output.close()
-            byte[] bytes = outputStream.toByteArray()
-            log.trace 'finished serializing session: {}', bytes
-            return bytes
         })
     }
 
-    SerializableSession deserialize(byte[] serializedSession) {
+    SerializableSession deserialize(InputStream serializedSession) {
         kryoPool.run({ Kryo kryo ->
             log.trace 'starting deserializing session'
-            Input input = new Input(new ByteArrayInputStream(serializedSession))
+            Input input = new Input(serializedSession)
             SerializableSession session = kryo.readObject(input, SerializableSession)
             log.trace 'finished deserializing session: {}', session
             return session

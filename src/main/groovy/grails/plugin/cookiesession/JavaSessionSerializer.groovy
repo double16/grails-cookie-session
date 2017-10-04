@@ -27,22 +27,18 @@ import groovy.util.logging.Slf4j
 class JavaSessionSerializer implements SessionSerializer {
     GrailsApplication grailsApplication
 
-    byte[] serialize(SerializableSession session) {
+    void serialize(SerializableSession session, OutputStream outputStream) {
         log.trace 'serializeSession()'
-        ByteArrayOutputStream stream = new ByteArrayOutputStream()
-        ObjectOutputStream output = new ObjectOutputStream(stream)
+        ObjectOutputStream output = new ObjectOutputStream(outputStream)
         output.writeObject(session)
         output.close()
-        byte[] bytes = stream.toByteArray()
-        log.trace 'serialized session. {} bytes.', bytes.length
-        return bytes
     }
 
-    SerializableSession deserialize(byte[] serializedSession) {
+    SerializableSession deserialize(InputStream serializedSession) {
 
         log.trace 'deserializeSession()'
 
-        ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(serializedSession)) {
+        ObjectInputStream inputStream = new ObjectInputStream(serializedSession) {
             @Override
             Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
                 //noinspection GroovyUnusedCatchParameter

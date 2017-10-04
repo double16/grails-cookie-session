@@ -25,6 +25,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
@@ -353,31 +355,32 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         log.trace 'getting sessionSerializer: {}', serializer
         SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
 
-        log.trace 'serializing session'
-        byte[] bytes = sessionSerializer.serialize(session)
+        ByteArrayOutputStream result = new ByteArrayOutputStream(maxCookieSize * cookieCount)
+        OutputStream stream = result
 
-        log.trace 'compressing serialized session from {} bytes', bytes.length
-        ByteArrayOutputStream stream = new ByteArrayOutputStream(bytes.length)
-        def gzipOut = new GZIPOutputStream(stream)
-        gzipOut.write(bytes, 0, bytes.length)
-        gzipOut.close()
-
-        bytes = stream.toByteArray()
-        log.trace 'compressed serialized session to {}', bytes.length
-
+        Cipher cipher = null
         if (encryptCookie) {
             log.trace 'encrypting serialized session'
-            Cipher cipher = Cipher.getInstance(cryptoAlgorithm)
+            cipher = Cipher.getInstance(cryptoAlgorithm)
             cipher.init(Cipher.ENCRYPT_MODE, cryptoKey)
-            bytes = cipher.doFinal(bytes)
+            stream = new CipherOutputStream(stream, cipher)
+        }
 
-            if (useInitializationVector) {
-                def iv = cipher.IV
-                def output = [iv.length]
-                output.addAll(iv)
-                output.addAll(bytes)
-                bytes = output as byte[]
-            }
+        stream = new GZIPOutputStream(stream)
+
+        log.trace 'serializing session'
+        sessionSerializer.serialize(session, stream)
+        stream.close()
+        byte[] bytes = result.toByteArray()
+
+        if (encryptCookie && useInitializationVector) {
+            log.trace 'prepending cipher IV to serialized session'
+            byte[] iv = cipher.IV
+            byte[] output = new byte[1 + iv.length + bytes.length]
+            output[0] = iv.length as byte
+            System.arraycopy(iv, 0, output, 1, iv.length)
+            System.arraycopy(bytes, 0, output, 1 + iv.length, bytes.length)
+            bytes = output
         }
 
         log.trace 'base64 encoding serialized session from {} bytes', bytes.length
@@ -394,44 +397,36 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         try {
             log.trace 'decodeBase64 serialized session from {} bytes.', serializedSession.size()
-            byte[] input = serializedSession.decodeBase64()
+            ByteArrayInputStream input = new ByteArrayInputStream(serializedSession.decodeBase64())
+            InputStream stream = input
 
             if (encryptCookie) {
-                log.trace 'decrypting serialized session from {} bytes.', input.length
+                log.trace 'decrypting serialized session from {} bytes.', serializedSession.size()
                 Cipher cipher = Cipher.getInstance(cryptoAlgorithm)
 
                 if (useInitializationVector) {
-                    int ivLen = input[0]
+                    int ivLen = input.read()
+                    byte[] ivBytes = new byte[ivLen]
+                    input.read(ivBytes)
                     if (useGCMmode) {
-                        GCMParameterSpec ivSpec = new GCMParameterSpec(128, input, 1, ivLen)
+                        GCMParameterSpec ivSpec = new GCMParameterSpec(128, ivBytes, 0, ivLen)
                         cipher.init(Cipher.DECRYPT_MODE, cryptoKey, ivSpec)
                     } else {
-                        IvParameterSpec ivSpec = new IvParameterSpec(input, 1, ivLen)
+                        IvParameterSpec ivSpec = new IvParameterSpec(ivBytes, 0, ivLen)
                         cipher.init(Cipher.DECRYPT_MODE, cryptoKey, ivSpec)
                     }
-                    input = cipher.doFinal(input, 1 + ivLen, input.length - 1 - ivLen)
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, cryptoKey)
-                    input = cipher.doFinal(input)
                 }
+
+                stream = new CipherInputStream(input, cipher)
             }
 
-            log.trace 'decompressing serialized session from {} bytes', input.length
-            InputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(input))
-            OutputStream outputStream = new ByteArrayOutputStream(input.length * 2)
-
-            byte[] buffer = new byte[input.length]
-            int bytesRead
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead)
-            }
-            outputStream.flush()
-
-            byte[] bytes = outputStream.toByteArray()
-            log.trace 'decompressed serialized session to {} bytes', bytes.length
+            log.trace 'decompressing serialized session from {} bytes', serializedSession.size()
+            stream = new GZIPInputStream(stream)
 
             SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
-            session = sessionSerializer.deserialize(bytes)
+            session = sessionSerializer.deserialize(stream)
         }
         catch (excp) {
             log.error 'An error occurred while deserializing a session.', excp

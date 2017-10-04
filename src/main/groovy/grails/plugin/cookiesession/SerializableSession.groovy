@@ -171,6 +171,7 @@ class SerializableSession implements HttpSession, Serializable {
 
     void setDirty(boolean dirty) {
         if (!dirty && this.dirty) {
+            // We're marking the session as no longer dirty, save a digest for comparison later
             digest = digestOfSession()
         }
         this.dirty = dirty
