@@ -95,6 +95,13 @@ grailsPublish {
     developers = [benlucchesi:"Ben Lucchesi", double16:"Patrick Double"]
 }
 
+quality {
+    codenarc = true
+    checkstyle = false
+    pmd = false
+    findbugs = false
+}
+
 codenarc {
     maxPriority2Violations = Integer.MAX_VALUE
     maxPriority3Violations = Integer.MAX_VALUE

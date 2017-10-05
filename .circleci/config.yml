@@ -7,7 +7,7 @@ jobs:
     environment:
       - BASH_ENV: /home/circleci/grails-cookie-session/local.env
       - TERM: dumb
-      - GRADLE_OPTS: '-Xmx384m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
+      - GRADLE_OPTS: '-Xmx768m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
       - GRADLE_USER_HOME: /home/circleci/.gradle
 
     steps:
@@ -17,7 +17,7 @@ jobs:
           name: Configure Gradle Memory
           command: |
             mkdir -p ${GRADLE_USER_HOME}
-            echo "org.gradle.jvmargs=-Xmx384m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" >> ${GRADLE_USER_HOME}/gradle.properties
+            echo "org.gradle.jvmargs=-Xmx768m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" >> ${GRADLE_USER_HOME}/gradle.properties
             echo "org.gradle.daemon=false" >> ${GRADLE_USER_HOME}/gradle.properties
 
       - run:
