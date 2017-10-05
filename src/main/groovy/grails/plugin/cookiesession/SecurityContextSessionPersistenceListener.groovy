@@ -26,9 +26,10 @@ import org.springframework.security.web.savedrequest.SavedRequest
 @Slf4j
 class SecurityContextSessionPersistenceListener implements SessionPersistenceListener, InitializingBean {
     static final String SPRING__SECURITY__CONTEXT = 'SPRING_SECURITY_CONTEXT'
-    // needed for backwards compatibility
-    static
-    final List<String> SPRING_SECURITY_SAVED_REQUEST = ['SPRING_SECURITY_SAVED_REQUEST_KEY', 'SPRING_SECURITY_SAVED_REQUEST']
+
+    static final List<String> SPRING_SECURITY_SAVED_REQUEST = [
+            'SPRING_SECURITY_SAVED_REQUEST_KEY', // needed for backwards compatibility
+            'SPRING_SECURITY_SAVED_REQUEST']
 
     GrailsApplication grailsApplication
     Class securityContextHolder

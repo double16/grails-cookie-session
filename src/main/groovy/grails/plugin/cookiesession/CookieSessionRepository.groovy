@@ -37,8 +37,10 @@ import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.security.SecureRandom
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
+import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
+import java.util.zip.Inflater
+import java.util.zip.InflaterInputStream
 
 @Slf4j
 class CookieSessionRepository implements SessionRepository, InitializingBean, ApplicationContextAware {
@@ -355,7 +357,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         log.trace 'getting sessionSerializer: {}', serializer
         SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
 
-        ByteArrayOutputStream result = new ByteArrayOutputStream(maxCookieSize * cookieCount)
+        final int maxSessionSize = maxCookieSize * cookieCount
+        ByteArrayOutputStream result = new ByteArrayOutputStream(maxSessionSize)
         OutputStream stream = result
 
         Cipher cipher = null
@@ -366,7 +369,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             stream = new CipherOutputStream(stream, cipher)
         }
 
-        stream = new GZIPOutputStream(stream)
+        stream = new DeflaterOutputStream(stream, new Deflater(Deflater.BEST_SPEED), maxSessionSize)
 
         log.trace 'serializing session'
         sessionSerializer.serialize(session, stream)
@@ -394,6 +397,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         log.trace 'deserializeSession()'
 
         SerializableSession session
+        final int maxSessionSize = maxCookieSize * cookieCount
 
         try {
             log.trace 'decodeBase64 serialized session from {} bytes.', serializedSession.size()
@@ -423,7 +427,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             }
 
             log.trace 'decompressing serialized session from {} bytes', serializedSession.size()
-            stream = new GZIPInputStream(stream)
+            stream = new InflaterInputStream(stream, new Inflater(), maxSessionSize)
 
             SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
             session = sessionSerializer.deserialize(stream)

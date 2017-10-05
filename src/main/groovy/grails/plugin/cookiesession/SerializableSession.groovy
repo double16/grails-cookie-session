@@ -20,7 +20,6 @@ package grails.plugin.cookiesession
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.apache.commons.io.output.NullOutputStream
 import org.apache.commons.lang.builder.ReflectionToStringBuilder
 import org.apache.commons.lang.builder.ToStringStyle
 
@@ -191,13 +190,20 @@ class SerializableSession implements HttpSession, Serializable {
         return dirty
     }
 
+    static final OutputStream NULL_OUTPUTSTREAM = new OutputStream() {
+        @Override
+        void write(int b) throws IOException {}
+        @Override
+        void write(byte[] b, int off, int len) throws IOException {}
+    }
+
     /**
      * Compute a digest of the session to be used for dirty checking.
      * @return
      */
     private byte[] digestOfSession() {
         log.trace 'computing digest of session'
-        DigestOutputStream stream = new DigestOutputStream(new NullOutputStream(), MessageDigest.getInstance('MD5'))
+        DigestOutputStream stream = new DigestOutputStream(NULL_OUTPUTSTREAM, MessageDigest.getInstance('MD5'))
         ObjectOutputStream output = new ObjectOutputStream(stream)
         output.writeObject(attributes)
         output.close()

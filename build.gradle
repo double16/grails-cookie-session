@@ -62,7 +62,6 @@ dependencies {
     compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.42") {
         exclude module: 'kryo' // we want kryo-shaded as above
     }
-    compile 'commons-io:commons-io:2.4'
 }
 
 bootRepackage.enabled = false
