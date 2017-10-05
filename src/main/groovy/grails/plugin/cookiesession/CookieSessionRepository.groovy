@@ -342,9 +342,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     void saveSession(SerializableSession session, HttpServletResponse response) {
         log.trace 'saveSession()'
 
-        String serializedSession = serializeSession(session)
-
         if (session.isValid) {
+            String serializedSession = serializeSession(session)
             putDataInCookie(response, serializedSession)
         } else {
             deleteCookie(response)

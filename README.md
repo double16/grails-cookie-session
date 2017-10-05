@@ -34,143 +34,31 @@ edit build.gradle add the following line under the plugins closure
 The following parameters are supported directly by the cookie-session-v3 plugin. Note, additional configuration is needed for large session support. See additional instructions below.
 
 ## Parameters
-<table>
-  <thead>
-    <tr>
-      <th>name</th>
-      <th>default</th>
-      <th>description</th>
-  </thead>
-  <tbody>
-    <tr>
-      <td>grails.plugin.cookiesession.enabled</td>
-      <td>false</td>
-      <td>enables or disables the cookie session.</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.encryptcookie</td>
-      <td>true</td>
-      <td>enable or disable encrypting session data stored in cookies.</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.cryptoalgorithm</td>
-      <td>Blowfish</td>
-      <td>The cryptographic algorithm used to encrypt session data (i.e. Blowfish, DES, DESEde, AES). NOTE: the secret must be compatible with the crypto algorithm. Version 2.0.12 supports non-ECB cipher modes, such as 'Blowfish/CBC/PKCS5Padding', that require an initialization vector</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.secret</td>
-      <td><b>generated</b></td>
-      <td>The secret key used to encrypt session data. If not set, a random key will be created at runtime. Set this parameter if deploying multiple instances of the application or if sessions need to survive a server crash or restart. sessions to be recovered after a server crash or restart.</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.cookiecount</td>
-      <td>5</td>
-      <td>The maximum number of cookies that are created to store the session in</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.maxcookiesize</td>
-      <td>2048</td>
-      <td>The max size for each cookie expressed in bytes.</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.sessiontimeout</td>
-      <td>0</td>
-      <td>The length of time a session can be inactive for expressed in seconds. -1 indicates that a session will be active for as long as the browser is open.</td>
-    </tr>
-    <tr>
-      <td>grails.plugin.cookiesession.cookiename</td>
-      <td>gsession-X</td>
-      <td>X number of cookies will be written per the cookiecount parameter. Each cookie is suffixed with the integer index of the cookie.</td>
-    </tr>
 
-    <tr>
-      <td>grails.plugin.cookiesession.condenseexceptions</td>
-      <td>false</td>
-      <td>replaces instances of Exceptions objects in the session with the Exception.getMessage() in the session (see SessionPersistanceListener for further details)</td> 
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.serializer</td>
-      <td>'java'</td>
-      <td>specify serializer used to serialize session objects. valid values are: 'java', 'kryo', or the name of a spring bean that implement SessionSerializer. See section on Serializers below.</td> 
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.usesessioncookieconfig</td>
-      <td>false</td>
-      <td>version 2.0.12+ uses the ServletContext.SessionCookieConfig to configure cookies used to store the session. values from SessionCookieConfig override config parameters setsecure, sethttp, path, domain, comment, sessiontimeout, and cookiename. See notes below on use of this config option.</td> 
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.springsecuritycompatibility</td>
-      <td>false</td>
-      <td>true to configure enhanced compatibility with spring security, false to disable.</td> 
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.setsecure</td>
-      <td>false</td>
-      <td>calls Cookie.setSecure on cookie-session cookies. This flag indicates to browsers whether cookies should only be sent over secure connections.</td> 
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.httponly</td>
-      <td>false</td>
-      <td>calls Cookie.setHttpOnly on cookie-session cookies. This flag indicates to browsers that the cookie should not be made available to scripts.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.path</td>
-      <td>/</td>
-      <td>calls Cookie.setPath on cookie-session cookies. This limits the paths for which the browser should send the cookie.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.domain</td>
-      <td>-unset-</td>
-      <td>calls Cookie.setDomain on cookie-session cookies if set. This tells the browsers which domains the cookie is valid for; if unset, then the cookie is valid for the current host only.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.comment</td>
-      <td>-unset-</td>
-      <td>calls Cookie.setComment on cookie-session cookies.</td>
-    </tr>
-
-
-    <tr>
-      <td>grails.plugin.cookiesession.id</td>
-      <td><b>deprecated</b></td>
-      <td>deprecated. use the 'grails.plugin.cookiesession.cookiename' setting.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.timeout</td>
-      <td><b>deprecated</b></td>
-      <td>deprecated. use the 'grails.plugin.cookiesession.sessiontimeout' setting.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.hmac.secret</td>
-      <td><b>deprecated</b></td>
-      <td>deprecated. use the 'grails.plugin.cookiesession.secret' setting.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.hmac.id</td>
-      <td><b>deprecated</b></td>
-      <td>deprecated. no equivelent setting is present in this version of the plugin.</td>
-    </tr>
-
-    <tr>
-      <td>grails.plugin.cookiesession.hmac.algorithm  </td>
-      <td><b>deprecated</b></td>
-      <td>deprecated. use the 'grails.plugin.cookiesession.cryptoalgorithm' settings.</td>
-    </tr>
-
-
-  </tbody>
-</table>
+| name | default | description |
+| ---- | ------- | ----------- |
+| grails.plugin.cookiesession.enabled                     | false          | enables or disables the cookie session. |
+| grails.plugin.cookiesession.encryptcookie               | true           | enable or disable encrypting session data stored in cookies. |
+| grails.plugin.cookiesession.cryptoalgorithm             | Blowfish       | The cryptographic algorithm used to encrypt session data (i.e. Blowfish, DES, DESEde, AES). NOTE: the secret must be compatible with the crypto algorithm. Version 2.0.12 supports non-ECB cipher modes, such as 'Blowfish/CBC/PKCS5Padding', that require an initialization vector |
+| grails.plugin.cookiesession.secret                      | **generated**  | The secret key used to encrypt session data. If not set, a random key will be created at runtime. Set this parameter if deploying multiple instances of the application or if sessions need to survive a server crash or restart. sessions to be recovered after a server crash or restart. |
+| grails.plugin.cookiesession.cookiecount                 | 5              | The maximum number of cookies that are created to store the session in |
+| grails.plugin.cookiesession.maxcookiesize               | 2048           | The max size for each cookie expressed in bytes. |
+| grails.plugin.cookiesession.sessiontimeout              | 0              | The length of time a session can be inactive for expressed in seconds. -1 indicates that a session will be active for as long as the browser is open. |
+| grails.plugin.cookiesession.cookiename                  | gsession-X     | X number of cookies will be written per the cookiecount parameter. Each cookie is suffixed with the integer index of the cookie. |
+| grails.plugin.cookiesession.condenseexceptions          | false          | replaces instances of Exceptions objects in the session with the Exception.getMessage() in the session (see SessionPersistanceListener for further details) |
+| grails.plugin.cookiesession.serializer                  | 'java'         | specify serializer used to serialize session objects. valid values are: 'java', 'kryo', or the name of a spring bean that implement SessionSerializer. See section on Serializers below. | 
+| grails.plugin.cookiesession.usesessioncookieconfig      | false          | version 2.0.12+ uses the ServletContext.SessionCookieConfig to configure cookies used to store the session. values from SessionCookieConfig override config parameters setsecure, sethttp, path, domain, comment, sessiontimeout, and cookiename. See notes below on use of this config option. |
+| grails.plugin.cookiesession.springsecuritycompatibility | false          | true to configure enhanced compatibility with spring security, false to disable. |
+| grails.plugin.cookiesession.setsecure                   | false          | calls Cookie.setSecure on cookie-session cookies. This flag indicates to browsers whether cookies should only be sent over secure connections. |
+| grails.plugin.cookiesession.httponly                    | false          | calls Cookie.setHttpOnly on cookie-session cookies. This flag indicates to browsers that the cookie should not be made available to scripts. |
+| grails.plugin.cookiesession.path                        | /              | calls Cookie.setPath on cookie-session cookies. This limits the paths for which the browser should send the cookie. |
+| grails.plugin.cookiesession.domain                      | -unset-        | calls Cookie.setDomain on cookie-session cookies if set. This tells the browsers which domains the cookie is valid for; if unset, then the cookie is valid for the current host only. |
+| grails.plugin.cookiesession.comment                     | -unset-        | calls Cookie.setComment on cookie-session cookies. |
+| grails.plugin.cookiesession.id                          | **deprecated** | deprecated. use the 'grails.plugin.cookiesession.cookiename' setting. |
+| grails.plugin.cookiesession.timeout                     | **deprecated** | deprecated. use the 'grails.plugin.cookiesession.sessiontimeout' setting. |
+| grails.plugin.cookiesession.hmac.secret                 | **deprecated** | deprecated. use the 'grails.plugin.cookiesession.secret' setting. |
+| grails.plugin.cookiesession.hmac.id                     | **deprecated** | deprecated. no equivelent setting is present in this version of the plugin. |
+| grails.plugin.cookiesession.hmac.algorithm              | **deprecated** | deprecated. use the 'grails.plugin.cookiesession.cryptoalgorithm' settings. |
 
 ## Example
 
