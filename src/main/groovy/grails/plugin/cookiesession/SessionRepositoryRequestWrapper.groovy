@@ -42,15 +42,15 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
     void restoreSession() {
         log.trace('restoreSession()')
 
-        // use the sessionRepository to attempt to retrieve session object
-        // if a session was restored
-        // - set isNew == false
-        // - assign the servlet context
-
         session = sessionRepository.restoreSession(this)
+        if (session == null) {
+            return
+        }
+
+        session.setIsNewSession(false)
+        session.servletContext = servletContext
 
         if (sessionPersistenceListeners != null) {
-            // call sessionPersistenceListeners
             for (SessionPersistenceListener listener : sessionPersistenceListeners) {
                 try {
                     listener.afterSessionRestored(session)
@@ -67,18 +67,11 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
 
         log.trace('getSession({})', create)
 
-        // if there isn't an existing session object and create == true, then
-        // - create a new session object
-        // - set isNew == true
-        // - assign the servlet context
-        // else
-        // - return the session field regardless if what it contains
-
         if (session == null && create) {
             log.trace('creating new session')
             session = new SerializableSession()
             session.setIsNewSession(true)
-            session.setServletContext(this.getServletContext())
+            session.setServletContext(servletContext)
         }
 
         return (session)
@@ -96,13 +89,5 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
 
         // session repository is responsible for determining if the requested session id is valid.
         return sessionRepository.isSessionIdValid(this.getRequestedSessionId())
-    }
-
-    ServletContext getServletContext() {
-        return servletContext
-    }
-
-    void setServletContext(ServletContext ctx) {
-        servletContext = ctx
     }
 }

@@ -307,9 +307,9 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                 session = deserializeSession(serializedSession, request)
             }
 
-            def maxInactiveIntervalMillis = maxInactiveInterval * 1000
-            def currentTime = System.currentTimeMillis()
-            def lastAccessedTime = session?.lastAccessedTime ?: 0
+            long maxInactiveIntervalMillis = maxInactiveInterval * 1000
+            long currentTime = System.currentTimeMillis()
+            long lastAccessedTime = session?.lastAccessedTime ?: 0
             long inactiveInterval = currentTime - lastAccessedTime
 
             if (session) {

@@ -57,9 +57,18 @@ class SecurityContextSessionPersistenceListener implements SessionPersistenceLis
         SPRING_SECURITY_SAVED_REQUEST.each { savedRequestKey ->
             SavedRequest sr = (SavedRequest) session.getAttribute(savedRequestKey)
             if (sr) {
-                sr.@cookies.removeIf { it.name ==~ cookieName }
-                sr.@headers.keySet().removeIf { it.toLowerCase() == 'cookie' }
-                log.trace 'removed cookies from saved request in {}', savedRequestKey
+                boolean removed = false
+                if (sr.@cookies.removeIf { it.name ==~ cookieName }) {
+                    session.dirty = true
+                    removed = true
+                }
+                if (sr.@headers.keySet().removeIf { it.toLowerCase() == 'cookie' }) {
+                    session.dirty = true
+                    removed = true
+                }
+                if (removed) {
+                    log.trace 'removed cookies from saved request in {}', savedRequestKey
+                }
             }
         }
 
