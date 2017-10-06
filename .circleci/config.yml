@@ -4,7 +4,7 @@ jobs:
     working_directory: /home/circleci/grails-cookie-session
     docker:
       - image: circleci/openjdk:8u141-jdk
-      - cmd: ["/bin/bash"]
+        command: ["/bin/bash"]
     environment:
       - BASH_ENV: /home/circleci/grails-cookie-session/local.env
       - TERM: dumb
