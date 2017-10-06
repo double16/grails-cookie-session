@@ -37,6 +37,7 @@ jobs:
           keys:
             - v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}
             - v1-code-{{ .Branch }}-
+            - v1-code-
 
       - run:
           name: Unit Test and Publish for Further Testing
@@ -44,14 +45,24 @@ jobs:
             ./gradlew -s publishToMavenLocal
 
       - run:
-          name: Unit Test Grails Versions 3.0-3.3
+          name: Unit Test Grails Versions 3.1-3.3
           command: |
-            ./gradlew -s --continue check testAll cloverGenerateReport
+            ./gradlew -s --continue check testAll cloverGenerateReport -x test3_0
 
       - run:
-          name: Integration Test Grails Versions 3.0-3.3
+          name: Unit Test Grails Versions 3.0
           command: |
-            ./gradlew -s --continue integrationTestAll
+            ./grails3_0/gradlew -s -p grails3_0 test
+
+      - run:
+          name: Integration Test Grails Versions 3.1-3.3
+          command: |
+            ./gradlew -s --continue integrationTestAll -x integrationTest3_0
+
+      - run:
+          name: Integration Test Grails Versions 3.0
+          command: |
+            ./grails3_0/gradlew -s -p grails3_0 integrationTest
 
       - save_cache:
           key: v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}
