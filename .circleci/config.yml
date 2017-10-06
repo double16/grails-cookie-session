@@ -7,7 +7,7 @@ jobs:
     environment:
       - BASH_ENV: /home/circleci/grails-cookie-session/local.env
       - TERM: dumb
-      - GRADLE_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
+      - GRADLE_OPTS: '-Xmx768m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
       - GRADLE_USER_HOME: /home/circleci/.gradle
 
     steps:
@@ -17,9 +17,9 @@ jobs:
           name: Configure Gradle Memory
           command: |
             mkdir -p ${GRADLE_USER_HOME}
-            echo "org.gradle.jvmargs=-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" >> ${GRADLE_USER_HOME}/gradle.properties
+            echo "org.gradle.jvmargs=-Xmx768m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" > ${GRADLE_USER_HOME}/gradle.properties
             echo "org.gradle.daemon=false" >> ${GRADLE_USER_HOME}/gradle.properties
-            echo "org.gradle.parallel=false" >> ${GRADLE_USER_HOME}/gradle.properties
+            echo "org.gradle.workers.max=2" >> ${GRADLE_USER_HOME}/gradle.properties
 
       - run:
           name: Configure Artifact Cache
@@ -35,7 +35,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}
+            - v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum "test-common-spock10/build.gradle" }}-{{ checksum "test-common-spock11/build.gradle" }}-{{ checksum "grails3_0/build.gradle" }}-{{ checksum "grails3_1/build.gradle" }}-{{ checksum "grails3_2/build.gradle" }}-{{ checksum "grails3_3/build.gradle" }}
             - v1-code-{{ .Branch }}-
             - v1-code-
 
@@ -49,6 +49,7 @@ jobs:
           command: |
             ./gradlew -s --continue check testAll cloverGenerateReport -x test3_0
 
+      # Run Grails 3.0 separately since it execs another Gradle process and exceeds the memory limit
       - run:
           name: Unit Test Grails Versions 3.0
           command: |
@@ -59,13 +60,14 @@ jobs:
           command: |
             ./gradlew -s --continue integrationTestAll -x integrationTest3_0
 
+      # Run Grails 3.0 separately since it execs another Gradle process and exceeds the memory limit
       - run:
           name: Integration Test Grails Versions 3.0
           command: |
             ./grails3_0/gradlew -s -p grails3_0 integrationTest
 
       - save_cache:
-          key: v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}
+          key: v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum "test-common-spock10/build.gradle" }}-{{ checksum "test-common-spock11/build.gradle" }}-{{ checksum "grails3_0/build.gradle" }}-{{ checksum "grails3_1/build.gradle" }}-{{ checksum "grails3_2/build.gradle" }}-{{ checksum "grails3_3/build.gradle" }}
           paths:
             - /home/circleci/.gradle/native
             - /home/circleci/.gradle/caches
