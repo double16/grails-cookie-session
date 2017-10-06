@@ -21,7 +21,8 @@ package grails.plugin.cookiesession
 import grails.core.GrailsApplication
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
-import org.springframework.security.web.savedrequest.SavedRequest
+
+import java.util.regex.Pattern
 
 @Slf4j
 class SecurityContextSessionPersistenceListener implements SessionPersistenceListener, InitializingBean {
@@ -34,13 +35,14 @@ class SecurityContextSessionPersistenceListener implements SessionPersistenceLis
     GrailsApplication grailsApplication
     Class securityContextHolder
 
-    String cookieName = 'gsession'
+    Pattern cookiePattern = Pattern.compile(/^gsession-\d+$/)
 
     @Override
     void afterPropertiesSet() {
         log.trace 'afterPropertiesSet()'
         if (grailsApplication.config.grails.plugin.cookiesession.containsKey('cookiename')) {
-            cookieName = grailsApplication.config.grails.plugin.cookiesession.cookiename
+            String cookieName = grailsApplication.config.grails.plugin.cookiesession.cookiename
+            cookiePattern = Pattern.compile(/^${cookieName}-\d+$/)
         }
 
         securityContextHolder = grailsApplication.classLoader.loadClass('org.springframework.security.core.context.SecurityContextHolder')
@@ -55,10 +57,10 @@ class SecurityContextSessionPersistenceListener implements SessionPersistenceLis
         log.trace 'beforeSessionSaved()'
 
         SPRING_SECURITY_SAVED_REQUEST.each { savedRequestKey ->
-            SavedRequest sr = (SavedRequest) session.getAttribute(savedRequestKey)
+            def sr = session.getAttribute(savedRequestKey)
             if (sr) {
                 boolean removed = false
-                if (sr.@cookies.removeIf { it.name ==~ cookieName }) {
+                if (sr.@cookies.removeIf { it.name ==~ cookiePattern }) {
                     session.dirty = true
                     removed = true
                 }

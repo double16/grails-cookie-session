@@ -40,31 +40,49 @@ jobs:
             - v1-code-
 
       - run:
-          name: Unit Test and Publish for Further Testing
+          name: Unit Test and Publish to Local
           command: |
-            ./gradlew -s publishToMavenLocal
+            ./gradlew -s --continue check cloverGenerateReport publishToMavenLocal
 
-      - run:
-          name: Unit Test Grails Versions 3.1-3.3
-          command: |
-            ./gradlew -s --continue check testAll cloverGenerateReport -x test3_0
-
-      # Run Grails 3.0 separately since it execs another Gradle process and exceeds the memory limit
       - run:
           name: Unit Test Grails Versions 3.0
           command: |
             ./grails3_0/gradlew -s -p grails3_0 test
 
       - run:
-          name: Integration Test Grails Versions 3.1-3.3
+          name: Unit Test Grails Versions 3.1
           command: |
-            ./gradlew -s --continue integrationTestAll -x integrationTest3_0
+            ./grails3_1/gradlew -s -p grails3_1 test
 
-      # Run Grails 3.0 separately since it execs another Gradle process and exceeds the memory limit
+      - run:
+          name: Unit Test Grails Versions 3.2
+          command: |
+            ./grails3_2/gradlew -s -p grails3_2 test
+
+      - run:
+          name: Unit Test Grails Versions 3.3
+          command: |
+            ./grails3_3/gradlew -s -p grails3_3 test
+
       - run:
           name: Integration Test Grails Versions 3.0
           command: |
             ./grails3_0/gradlew -s -p grails3_0 integrationTest
+
+      - run:
+          name: Integration Test Grails Versions 3.1
+          command: |
+            ./grails3_1/gradlew -s -p grails3_1 integrationTest
+
+      - run:
+          name: Integration Test Grails Versions 3.2
+          command: |
+            ./grails3_2/gradlew -s -p grails3_2 integrationTest
+
+      - run:
+          name: Integration Test Grails Versions 3.3
+          command: |
+            ./grails3_3/gradlew -s -p grails3_3 integrationTest
 
       - save_cache:
           key: v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum "test-common-spock10/build.gradle" }}-{{ checksum "test-common-spock11/build.gradle" }}-{{ checksum "grails3_0/build.gradle" }}-{{ checksum "grails3_1/build.gradle" }}-{{ checksum "grails3_2/build.gradle" }}-{{ checksum "grails3_3/build.gradle" }}

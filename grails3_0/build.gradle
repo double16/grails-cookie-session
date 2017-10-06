@@ -47,8 +47,8 @@ dependencyManagement {
 }
 
 dependencies {
-    compile "org.grails.plugins:cookie-session:+"
-    testCompile("org.grails.plugins.cookie-session:test-common-spock10:+") {
+    compile "org.grails.plugins:cookie-session:4.+"
+    testCompile("org.grails.plugins.cookie-session:test-common-spock10:4.+") {
         transitive = false
     }
 

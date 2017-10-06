@@ -115,35 +115,39 @@ clover {
     }
 }
 
-task test3_0(type: Exec, group: 'verification') {
-    dependsOn publishToMavenLocal
-    workingDir 'grails3_0'
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        commandLine 'cmd', '/c', 'gradlew.bat', 'test'
-    } else {
-        commandLine './gradlew', 'test'
+def createGrailsTestTask(version) {
+    task "test${version}"(type: Exec, group: 'verification') {
+        dependsOn publishToMavenLocal
+        workingDir "grails${version}"
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            commandLine 'cmd', '/c', 'gradlew.bat', 'test'
+        } else {
+            commandLine './gradlew', 'test'
+        }
     }
 }
 
-task integrationTest3_0(type: Exec, group: 'verification') {
-    dependsOn publishToMavenLocal
-    workingDir 'grails3_0'
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        commandLine 'cmd', '/c', 'gradlew.bat', 'integrationTest'
-    } else {
-        commandLine './gradlew', 'integrationTest'
+def createGrailsIntegrationTestTask(version) {
+    task "integrationTest${version}"(type: Exec, group: 'verification') {
+        dependsOn publishToMavenLocal
+        workingDir "grails${version}"
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            commandLine 'cmd', '/c', 'gradlew.bat', 'integrationTest'
+        } else {
+            commandLine './gradlew', 'integrationTest'
+        }
     }
 }
+
+def versions = ['3_0', '3_1', '3_2', '3_3']
 
 task testAll(group: 'verification') {
     dependsOn test
     dependsOn publishToMavenLocal
-    dependsOn test3_0
-    dependsOn gradle.includedBuilds*.task(':test')
+    dependsOn versions.collect { createGrailsTestTask(it) }
 }
 
 task integrationTestAll(group: 'verification') {
     dependsOn publishToMavenLocal
-    dependsOn integrationTest3_0
-    dependsOn gradle.includedBuilds*.task(':integrationTest')
+    dependsOn versions.collect { createGrailsIntegrationTestTask(it) }
 }
