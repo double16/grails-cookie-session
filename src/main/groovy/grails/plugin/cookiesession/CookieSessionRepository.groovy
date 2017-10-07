@@ -208,7 +208,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         if (useSessionCookieConfig) {
             this.cookieName = servletContext.sessionCookieConfig.name ?: cookieName
-            this.httpOnly = servletContext.sessionCookieConfig.httpOnly ?: secure
+            this.httpOnly = servletContext.sessionCookieConfig.httpOnly ?: httpOnly
             this.secure = servletContext.sessionCookieConfig.secure ?: secure
             this.path = servletContext.sessionCookieConfig.path ?: path
             this.domain = servletContext.sessionCookieConfig.domain ?: domain

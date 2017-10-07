@@ -79,7 +79,7 @@ application.yml
               cookiename: 'gsession'
               condenseexceptions: false
               setsecure: true
-              sethttponly: false
+              httponly: false
               path: '/'
               comment: 'Acme Session Info'
               serializer: 'kryo'

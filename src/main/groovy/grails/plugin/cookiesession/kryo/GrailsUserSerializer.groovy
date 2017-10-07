@@ -18,7 +18,7 @@ class GrailsUserSerializer extends Serializer<Object> {
     @Override
     void write(Kryo kryo, Output output, Object user) {
         log.trace 'starting writing {}', user
-        //NOTE: note writing authorities on purpose - those get written as part of the UsernamePasswordAuthenticationToken
+        //NOTE: not writing authorities on purpose - those get written as part of the UsernamePasswordAuthenticationToken
         kryo.writeObject(output, user.id)
         kryo.writeObject(output, user.username)
         kryo.writeObject(output, user.accountNonExpired)
