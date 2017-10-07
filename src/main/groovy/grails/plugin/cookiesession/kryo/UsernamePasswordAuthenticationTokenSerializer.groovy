@@ -6,11 +6,16 @@ import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import groovy.util.logging.Slf4j
 
+import java.lang.reflect.Constructor
+
 @Slf4j
 class UsernamePasswordAuthenticationTokenSerializer extends Serializer<Object> {
-    Class targetClass
+    final Class targetClass
+    final Constructor constructor
 
-    UsernamePasswordAuthenticationTokenSerializer() {
+    UsernamePasswordAuthenticationTokenSerializer(Class targetClass) {
+        this.targetClass = targetClass
+        constructor = targetClass.getConstructor(Object, Object, Collection)
     }
 
     @Override
@@ -36,7 +41,6 @@ class UsernamePasswordAuthenticationTokenSerializer extends Serializer<Object> {
         }
         def details = kryo.readClassAndObject(input)
 
-        def constructor = targetClass.getConstructor(Object, Object, Collection)
         def token = constructor.newInstance(principal, credentials, authorities)
         token.details = details
 

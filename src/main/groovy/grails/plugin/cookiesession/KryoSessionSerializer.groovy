@@ -94,7 +94,7 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
         kryo.fieldSerializerConfig.optimizedGenerics = true
         //kryo.registrationRequired = true
 
-        kryo.register(SerializableSession)
+        kryo.register(SerializableSession, new SerializableSessionSerializer())
 
         kryo.register(GrailsFlashScope, new GrailsFlashScopeSerializer())
         log.trace 'registered FlashScopeSerializer'
@@ -111,9 +111,7 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
                 grailsUserClass = grailsApplication.classLoader.loadClass('grails.plugin.springsecurity.userdetails.GrailsUser')
 
                 Class simpleGrantedAuthorityClass = grailsApplication.classLoader.loadClass('org.springframework.security.core.authority.SimpleGrantedAuthority')
-                def simpleGrantedAuthoritySerializer = new SimpleGrantedAuthoritySerializer()
-                simpleGrantedAuthoritySerializer.targetClass = simpleGrantedAuthorityClass
-                kryo.register(simpleGrantedAuthorityClass, simpleGrantedAuthoritySerializer)
+                kryo.register(simpleGrantedAuthorityClass, new GrantedAuthoritySerializer(simpleGrantedAuthorityClass))
                 log.trace 'registered SimpleGrantedAuthority serializer'
             } else {
                 grailsUserClass = grailsApplication.classLoader.loadClass('org.codehaus.groovy.grails.plugins.springsecurity.GrailsUser')
@@ -123,27 +121,19 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
 
             try {
                 Class grantedAuthorityImplClass = grailsApplication.classLoader.loadClass('org.springframework.security.core.authority.GrantedAuthorityImpl')
-                def grantedAuthorityImplSerializer = new GrantedAuthorityImplSerializer()
-                grantedAuthorityImplSerializer.targetClass = grantedAuthorityImplClass
-                kryo.register(grantedAuthorityImplClass, grantedAuthorityImplSerializer)
+                kryo.register(grantedAuthorityImplClass, new GrantedAuthoritySerializer(grantedAuthorityImplClass))
                 log.trace 'registered GrantedAuthorityImpl serializer'
             } catch (ClassNotFoundException e) {
                 log.trace 'GrantedAuthorityImpl not found, no serializer registered', e
             }
 
-            def userSerializer = new UserSerializer()
-            userSerializer.targetClass = userClass
-            kryo.register(userClass, userSerializer)
+            kryo.register(userClass, new UserSerializer(userClass))
             log.trace 'registered User serializer'
 
-            def grailsUserSerializer = new GrailsUserSerializer()
-            grailsUserSerializer.targetClass = grailsUserClass
-            kryo.register(grailsUserClass, grailsUserSerializer)
+            kryo.register(grailsUserClass, new GrailsUserSerializer(grailsUserClass))
             log.trace 'registered GrailsUser serializer'
 
-            def usernamePasswordAuthenticationTokenSerializer = new UsernamePasswordAuthenticationTokenSerializer()
-            usernamePasswordAuthenticationTokenSerializer.targetClass = usernamePasswordAuthenticationTokenClass
-            kryo.register(usernamePasswordAuthenticationTokenClass, usernamePasswordAuthenticationTokenSerializer)
+            kryo.register(usernamePasswordAuthenticationTokenClass, new UsernamePasswordAuthenticationTokenSerializer(usernamePasswordAuthenticationTokenClass))
             log.trace 'registered UsernamePasswordAuthenticationToken serializer'
 
             kryo.register(GrailsAnonymousAuthenticationToken, new GrailsAnonymousAuthenticationTokenSerializer())

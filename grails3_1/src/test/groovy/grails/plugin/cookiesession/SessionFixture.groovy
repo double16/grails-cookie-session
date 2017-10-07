@@ -66,7 +66,7 @@ trait SessionFixture extends SessionFixtureBase {
 
         SecurityContextImpl securityContext = new SecurityContextImpl()
         Collection<GrantedAuthority> authorities = Collections.unmodifiableSet([new SimpleGrantedAuthority('ROLE_ADMIN')] as Set)
-        GrailsUser principal = new GrailsUser('admin', null, true, true, true, true, Collections.emptySet(), 1)
+        GrailsUser principal = new GrailsUser('admin', '', true, true, true, true, Collections.emptySet(), 1)
         RememberMeAuthenticationToken authentication = new RememberMeAuthenticationToken('key', principal, authorities)
         authentication.setAuthenticated(true)
         authentication.setDetails(createDetails('0:0:0:0:0:0:0:1', 'simplesession'))

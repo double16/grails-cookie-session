@@ -14,18 +14,18 @@ import java.lang.reflect.Field
 class GrailsAnonymousAuthenticationTokenSerializer extends Serializer<GrailsAnonymousAuthenticationToken> {
     static final Field KEY_HASH_FIELD = AnonymousAuthenticationToken.getDeclaredField('keyHash')
     static {
-        KEY_HASH_FIELD.setAccessible(true)
+        KEY_HASH_FIELD.accessible = true
     }
 
     @Override
     void write(Kryo kryo, Output output, GrailsAnonymousAuthenticationToken object) {
-        kryo.writeObject(output, object.keyHash)
+        output.writeInt(object.keyHash)
         kryo.writeClassAndObject(output, object.details)
     }
 
     @Override
     GrailsAnonymousAuthenticationToken read(Kryo kryo, Input input, Class<GrailsAnonymousAuthenticationToken> type) {
-        int keyHash = kryo.readObject(input, Integer)
+        int keyHash = input.readInt()
         def details = kryo.readClassAndObject(input)
         GrailsAnonymousAuthenticationToken token = new GrailsAnonymousAuthenticationToken('temporary', details)
         KEY_HASH_FIELD.setInt(token, keyHash)

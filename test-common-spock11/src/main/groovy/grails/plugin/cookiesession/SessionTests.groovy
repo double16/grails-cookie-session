@@ -18,6 +18,8 @@ abstract class SessionTests extends Specification {
 
     abstract SerializableSession preauthWithSavedRequestSession()
 
+    abstract SerializableSession rememberMeSession()
+
     abstract boolean equals(HttpSession session1, HttpSession session2)
 
     abstract int maxSessionSize()
@@ -65,6 +67,19 @@ abstract class SessionTests extends Specification {
     void "serialize pre-auth session"() {
         given:
         def session = preauthWithSavedRequestSession()
+        when:
+        def serialized = serializeSession(session)
+        def session2 = deserializeSession(serialized)
+        then:
+        equals(session, session2)
+        and:
+        serialized.length() < maxSessionSize()
+    }
+
+    @Test
+    void "serialize remember me session"() {
+        given:
+        def session = rememberMeSession()
         when:
         def serialized = serializeSession(session)
         def session2 = deserializeSession(serialized)

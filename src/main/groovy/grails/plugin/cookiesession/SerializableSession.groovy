@@ -61,7 +61,7 @@ class SerializableSession implements HttpSession, Serializable {
     private static final long serialVersionUID = 42L
     private long creationTime = 0
     long lastAccessedTime = 0
-    private Map<String, Serializable> attributes
+    private Map<String, Serializable> attributes = new HashMap<String, Serializable>()
 
     transient boolean isValid = true
     transient boolean dirty = false
@@ -74,7 +74,12 @@ class SerializableSession implements HttpSession, Serializable {
     SerializableSession() {
         this.creationTime = System.currentTimeMillis()
         this.lastAccessedTime = this.creationTime
-        this.attributes = new HashMap<String, Serializable>()
+    }
+
+    SerializableSession(long creationTime, long lastAccessedTime, Map<String, Serializable> attributes) {
+        this.creationTime = creationTime
+        this.lastAccessedTime = lastAccessedTime
+        this.attributes = attributes
     }
 
     long getCreationTime() {
@@ -210,6 +215,10 @@ class SerializableSession implements HttpSession, Serializable {
         byte[] digest = stream.messageDigest.digest()
         log.trace 'digest of session of session is {}', digest
         digest
+    }
+
+    Map<String, Serializable> getAttributes() {
+        Collections.unmodifiableMap(attributes)
     }
 
     @Override

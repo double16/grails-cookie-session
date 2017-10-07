@@ -13,17 +13,23 @@ import java.lang.reflect.Constructor
  */
 @Slf4j
 class UserSerializer extends Serializer<Object> {
-    Class targetClass
+    final Class targetClass
+    final Constructor constructor
+
+    UserSerializer(Class targetClass) {
+        this.targetClass = targetClass
+        constructor = targetClass.getConstructor(String, String, boolean.class, boolean.class, boolean.class, boolean.class, Collection)
+    }
 
     @Override
     void write(Kryo kryo, Output output, Object user) {
         log.trace 'starting writing {}', user
-        //NOTE: note writing authorities on purpose - those get written as part of the UsernamePasswordAuthenticationToken
-        kryo.writeObject(output, user.username)
-        kryo.writeObject(output, user.isAccountNonExpired())
-        kryo.writeObject(output, user.isAccountNonLocked())
-        kryo.writeObject(output, user.isCredentialsNonExpired())
-        kryo.writeObject(output, user.isEnabled())
+        //NOTE: not writing authorities on purpose - those get written as part of the UsernamePasswordAuthenticationToken
+        output.writeString(user.username as String)
+        output.writeBoolean(user.isAccountNonExpired() as boolean)
+        output.writeBoolean(user.isAccountNonLocked() as boolean)
+        output.writeBoolean(user.isCredentialsNonExpired() as boolean)
+        output.writeBoolean(user.isEnabled() as boolean)
         //kryo.writeClassAndObject(output,user.authorities)
         log.trace 'finished writing {}', user
     }
@@ -31,13 +37,12 @@ class UserSerializer extends Serializer<Object> {
     @Override
     Object read(Kryo kryo, Input input, Class<Object> type) {
         log.trace 'starting reading GrailsUser'
-        String username = kryo.readObject(input, String)
-        String accountNonExpired = kryo.readObject(input, String)
-        boolean accountNonLocked = kryo.readObject(input, Boolean)
-        boolean credentialsNonExpired = kryo.readObject(input, Boolean)
-        boolean enabled = kryo.readObject(input, Boolean)
+        String username = input.readString()
+        boolean accountNonExpired = input.readBoolean()
+        boolean accountNonLocked = input.readBoolean()
+        boolean credentialsNonExpired = input.readBoolean()
+        boolean enabled = input.readBoolean()
         def authorities = []
-        Constructor constructor = targetClass.getConstructor(String, String, boolean.class, boolean.class, boolean.class, boolean.class, Collection)
         def user = constructor.newInstance(username,
                 "",
                 enabled,
