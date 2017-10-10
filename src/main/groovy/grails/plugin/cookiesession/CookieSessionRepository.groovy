@@ -23,6 +23,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
+import org.xerial.snappy.SnappyInputStream
+import org.xerial.snappy.SnappyOutputStream
 
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
@@ -42,6 +44,12 @@ import java.util.zip.DeflaterOutputStream
 import java.util.zip.Inflater
 import java.util.zip.InflaterInputStream
 
+/**
+ * Implementation of a session repository using cookies to keep all of the session information in the client. It
+ * delegates session serialization to a SessionSerializer instance and adds compression, encryption and base64 encoding
+ * on top of the serialized session. This class also breaks the cookie value into chunks for storage in multiple
+ * cookies.
+ */
 @Slf4j
 class CookieSessionRepository implements SessionRepository, InitializingBean, ApplicationContextAware {
     public static final String DEFAULT_CRYPTO_ALGORITHM = 'Blowfish'
@@ -49,11 +57,13 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
     GrailsApplication grailsApplication
     ApplicationContext applicationContext
-    SecretKey cryptoKey
 
+    SecretKey cryptoKey
     boolean encryptCookie = true
     String cryptoAlgorithm = DEFAULT_CRYPTO_ALGORITHM
     byte[] cryptoSecret = null
+
+    Boolean useSnappy
 
     long maxInactiveInterval = 120
 
@@ -92,71 +102,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             }
         }
 
-        // if useSessionCookieConfig, then attach to invokeMethod and setProperty so that the values can be
-        // intercepted and assigned to local variables
         if (useSessionCookieConfig) {
-
-            servletContext.sessionCookieConfig.class.metaClass.invokeMethod = { String method, Object[] args ->
-                switch (method) {
-                    case 'setName':
-                        this.cookieName = args[0]
-                        break
-                    case 'setHttpOnly':
-                        this.httpOnly = args[0]
-                        break
-                    case 'setSecure':
-                        this.secure = args[0]
-                        break
-                    case 'setPath':
-                        this.path = args[0]
-                        break
-                    case 'setDomain':
-                        this.domain = args[0]
-                        break
-                    case 'setComment':
-                        this.comment = args[0]
-                        break
-                    case 'setMaxAge':
-                        this.maxInactiveInterval = args[0] as long
-                        break
-                }
-
-                servletContext.sessionCookieConfig.metaClass.methods.find {
-                    it.name == method
-                }?.invoke(servletContext.sessionCookieConfig, args)
-                log.trace 'detected sessionCookieConfig.{} -> {}', method, args
-            }
-
-            servletContext.sessionCookieConfig.class.metaClass.setProperty = { String property, value ->
-                switch (property) {
-                    case 'name':
-                        this.cookieName = value
-                        break
-                    case 'httpOnly':
-                        this.httpOnly = value
-                        break
-                    case 'secure':
-                        this.secure = value
-                        break
-                    case 'path':
-                        this.path = value
-                        break
-                    case 'domain':
-                        this.domain = value
-                        break
-                    case 'comment':
-                        this.comment = value
-                        break
-                    case 'maxAge':
-                        this.maxInactiveInterval = value
-                        break
-                }
-
-                servletContext.sessionCookieConfig.metaClass.properties.find {
-                    it.name == property
-                }.setProperty(servletContext.sessionCookieConfig, value)
-                log.trace 'detected sessionCookieConfig.{} -> {}', property, value
-            }
+            interceptSessionCookieConfig(servletContext)
         }
 
         assignSettingFromConfig('encryptcookie', false, Boolean, 'encryptCookie')
@@ -225,6 +172,46 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             log.info 'grails.plugin.cookiesession.springsecuritycompatibility not set. defaulting to false'
         }
 
+        warnForDeprecatedConfig()
+
+        // initialize the crypto key
+        if (cryptoSecret == null) {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(cryptoAlgorithm.split('/')[0])
+            SecureRandom secureRandom = new SecureRandom()
+            keyGenerator.init(secureRandom)
+            cryptoKey = keyGenerator.generateKey()
+        } else {
+            cryptoKey = new SecretKeySpec(cryptoSecret, cryptoAlgorithm.split('/')[0])
+        }
+
+        // determine if an initialization vector is needed
+        useInitializationVector = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() != 'ECB'
+        useGCMmode = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() == 'GCM'
+
+        // check to see if spring security's sessionfixationprevention is turned on
+        if (grailsApplication.config.grails.plugin.springsecurity.useSessionFixationPrevention == true) {
+            log.error 'grails.plugin.springsecurity.useSessionFixationPrevention == true. Spring Security Session Fixation Prevention is incompatible with cookie session plugin. Your application will experience unexpected behavior.'
+        }
+
+        checkForSnappy()
+    }
+
+    private void checkForSnappy() {
+        try {
+            SnappyOutputStream out = new SnappyOutputStream(new ByteArrayOutputStream())
+            out.write('test'.getBytes())
+            out.close()
+            useSnappy = true
+            log.info 'Using snappy compression'
+        } finally {
+            if (useSnappy == null) {
+                useSnappy = false
+                log.info 'Could not load snappy compression, using deflate'
+            }
+        }
+    }
+
+    private void warnForDeprecatedConfig() {
         if (grailsApplication.config.grails.plugin.cookiesession.containsKey('id')) {
             log.warn 'the grails.plugin.cookiesession.id setting is deprecated! Use the grails.plugin.cookiesession.cookiename setting instead!'
         }
@@ -244,24 +231,74 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         if (grailsApplication.config.grails.plugin.cookiesession.hmac.containsKey('algorithm')) {
             log.warn 'the grails.plugin.cookiesession.hmac.algorithm is deprecated! Use the grails.plugin.cookiesession.cryptoalgorithm setting instead!'
         }
+    }
 
-        // initialize the crypto key
-        if (cryptoSecret == null) {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(cryptoAlgorithm.split('/')[0])
-            SecureRandom secureRandom = new SecureRandom()
-            keyGenerator.init(secureRandom)
-            cryptoKey = keyGenerator.generateKey()
-        } else {
-            cryptoKey = new SecretKeySpec(cryptoSecret, cryptoAlgorithm.split('/')[0])
+    /**
+     * if useSessionCookieConfig, then attach to invokeMethod and setProperty so that the values can be
+     * intercepted and assigned to local variables
+     * @param servletContext
+     */
+    private void interceptSessionCookieConfig(ServletContext servletContext) {
+        servletContext.sessionCookieConfig.class.metaClass.invokeMethod = { String method, Object[] args ->
+            switch (method) {
+                case 'setName':
+                    this.cookieName = args[0]
+                    break
+                case 'setHttpOnly':
+                    this.httpOnly = args[0]
+                    break
+                case 'setSecure':
+                    this.secure = args[0]
+                    break
+                case 'setPath':
+                    this.path = args[0]
+                    break
+                case 'setDomain':
+                    this.domain = args[0]
+                    break
+                case 'setComment':
+                    this.comment = args[0]
+                    break
+                case 'setMaxAge':
+                    this.maxInactiveInterval = args[0] as long
+                    break
+            }
+
+            servletContext.sessionCookieConfig.metaClass.methods.find {
+                it.name == method
+            }?.invoke(servletContext.sessionCookieConfig, args)
+            log.trace 'detected sessionCookieConfig.{} -> {}', method, args
         }
 
-        // determine if an initialization vector is needed
-        useInitializationVector = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() != 'ECB'
-        useGCMmode = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() == 'GCM'
+        servletContext.sessionCookieConfig.class.metaClass.setProperty = { String property, value ->
+            switch (property) {
+                case 'name':
+                    this.cookieName = value
+                    break
+                case 'httpOnly':
+                    this.httpOnly = value
+                    break
+                case 'secure':
+                    this.secure = value
+                    break
+                case 'path':
+                    this.path = value
+                    break
+                case 'domain':
+                    this.domain = value
+                    break
+                case 'comment':
+                    this.comment = value
+                    break
+                case 'maxAge':
+                    this.maxInactiveInterval = value
+                    break
+            }
 
-        // check to see if spring security's sessionfixationprevention is turned on
-        if (grailsApplication.config.grails.plugin.springsecurity.useSessionFixationPrevention == true) {
-            log.error 'grails.plugin.springsecurity.useSessionFixationPrevention == true. Spring Security Session Fixation Prevention is incompatible with cookie session plugin. Your application will experience unexpected behavior.'
+            servletContext.sessionCookieConfig.metaClass.properties.find {
+                it.name == property
+            }.setProperty(servletContext.sessionCookieConfig, value)
+            log.trace 'detected sessionCookieConfig.{} -> {}', property, value
         }
     }
 
@@ -370,8 +407,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             stream = new CipherOutputStream(stream, cipher)
         }
 
-        // TODO: SnappyOutputStream from snappy-java library
-        stream = new DeflaterOutputStream(stream, new Deflater(Deflater.BEST_SPEED), maxSessionSize)
+        if (useSnappy) {
+            stream = new SnappyOutputStream(stream)
+        } else {
+            stream = new DeflaterOutputStream(stream, new Deflater(Deflater.BEST_SPEED), maxSessionSize)
+        }
 
         log.trace 'serializing session'
         sessionSerializer.serialize(session, stream)
@@ -429,7 +469,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             }
 
             log.trace 'decompressing serialized session from {} bytes', serializedSession.size()
-            stream = new InflaterInputStream(stream, new Inflater(), maxSessionSize)
+            if (useSnappy) {
+                stream = new SnappyInputStream(stream)
+            } else {
+                stream = new InflaterInputStream(stream, new Inflater(), maxSessionSize)
+            }
 
             SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
             session = sessionSerializer.deserialize(stream)
