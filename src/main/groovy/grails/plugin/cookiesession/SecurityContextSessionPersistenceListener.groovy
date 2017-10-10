@@ -30,7 +30,8 @@ class SecurityContextSessionPersistenceListener implements SessionPersistenceLis
 
     static final List<String> SPRING_SECURITY_SAVED_REQUEST = [
             'SPRING_SECURITY_SAVED_REQUEST_KEY', // needed for backwards compatibility
-            'SPRING_SECURITY_SAVED_REQUEST']
+            'SPRING_SECURITY_SAVED_REQUEST',
+    ]
 
     GrailsApplication grailsApplication
     Class securityContextHolder

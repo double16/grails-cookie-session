@@ -20,9 +20,9 @@ The Cookie Session plugin enables grails applications to store session data in h
 
     def license = 'APACHE'
 
-    def developers = [ [ name: "Ben Lucchesi", email: "benlucchesi@gmail.com" ]]
+    def developers = [[name: 'Ben Lucchesi', email: 'benlucchesi@gmail.com']]
 
-    def issueManagement = [ system: "GitHub", url: "https://github.com/double16/grails-cookie-session/issues" ]
+    def issueManagement = [system: 'GitHub', url: 'https://github.com/double16/grails-cookie-session/issues']
 
     def scm = [url: 'https://github.com/double16/grails-cookie-session.git']
 

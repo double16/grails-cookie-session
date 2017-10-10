@@ -61,7 +61,8 @@ class CookieSessionFilter extends OncePerRequestFilter implements InitializingBe
         // if one does not exist yet. otherwise the security context will not be persisted and
         // propagated between requests if the application did not happen to use a session yet.
 
-        SessionRepositoryResponseWrapper responseWrapper = new SessionRepositoryResponseWrapper(response, sessionRepository, requestWrapper, this.enforceSession)
+        SessionRepositoryResponseWrapper responseWrapper = new SessionRepositoryResponseWrapper(
+                response, sessionRepository, requestWrapper, this.enforceSession)
         responseWrapper.setSessionPersistenceListeners(this.sessionPersistenceListeners)
         chain.doFilter(requestWrapper, responseWrapper)
     }

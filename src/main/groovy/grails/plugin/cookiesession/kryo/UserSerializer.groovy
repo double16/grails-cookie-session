@@ -18,7 +18,8 @@ class UserSerializer extends Serializer<Object> {
 
     UserSerializer(Class targetClass) {
         this.targetClass = targetClass
-        constructor = targetClass.getConstructor(String, String, boolean.class, boolean.class, boolean.class, boolean.class, Collection)
+        constructor = targetClass.getConstructor(String, String, boolean.class, boolean.class,
+                boolean.class, boolean.class, Collection)
     }
 
     @Override
@@ -44,7 +45,7 @@ class UserSerializer extends Serializer<Object> {
         boolean enabled = input.readBoolean()
         def authorities = []
         def user = constructor.newInstance(username,
-                "",
+                '',
                 enabled,
                 accountNonExpired,
                 credentialsNonExpired,

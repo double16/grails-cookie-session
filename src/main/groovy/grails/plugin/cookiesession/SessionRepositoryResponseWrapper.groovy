@@ -28,16 +28,16 @@ import javax.servlet.http.HttpServletResponseWrapper
 @CompileStatic
 @Slf4j
 class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
-    private SessionRepository sessionRepository
-    private SessionRepositoryRequestWrapper request
-    private boolean sessionSaved = false
-    private boolean enforceSession = false
+    private final SessionRepository sessionRepository
+    private final SessionRepositoryRequestWrapper request
+    private final boolean enforceSession
     private Collection<SessionPersistenceListener> sessionPersistenceListeners
+    private boolean sessionSaved = false
 
     SessionRepositoryResponseWrapper(HttpServletResponse response,
                                      SessionRepository sessionRepository,
                                      SessionRepositoryRequestWrapper request,
-                                     boolean enforceSession) {
+                                     boolean enforceSession = false) {
         super(response)
         this.sessionRepository = sessionRepository
         this.request = request
@@ -105,7 +105,7 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
     }
 
     @Override
-    @SuppressWarnings("Deprecated")
+    @SuppressWarnings('Deprecated')
     void setStatus(int sc, String sm) {
         log.trace('intercepting setStatus({}, {}) to save session', sc, sm)
         this.saveSession()

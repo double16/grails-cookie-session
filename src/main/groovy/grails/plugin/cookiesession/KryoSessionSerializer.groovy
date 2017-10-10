@@ -23,11 +23,22 @@ import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import com.esotericsoftware.kryo.pool.KryoFactory
 import com.esotericsoftware.kryo.pool.KryoPool
-import com.esotericsoftware.kryo.serializers.DefaultArraySerializers
-import com.esotericsoftware.kryo.serializers.DefaultSerializers
-import de.javakaffee.kryoserializers.*
+import de.javakaffee.kryoserializers.ArraysAsListSerializer
+import de.javakaffee.kryoserializers.JdkProxySerializer
+import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer
+import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer
 import grails.core.GrailsApplication
-import grails.plugin.cookiesession.kryo.*
+import grails.plugin.cookiesession.kryo.ByteArrayValueOfSerializer
+import grails.plugin.cookiesession.kryo.DefaultSavedRequestSerializer
+import grails.plugin.cookiesession.kryo.GrailsAnonymousAuthenticationTokenSerializer
+import grails.plugin.cookiesession.kryo.GrailsFlashScopeSerializer
+import grails.plugin.cookiesession.kryo.GrailsUserSerializer
+import grails.plugin.cookiesession.kryo.GrantedAuthoritySerializer
+import grails.plugin.cookiesession.kryo.RememberMeAuthenticationTokenSerializer
+import grails.plugin.cookiesession.kryo.SerializableSessionSerializer
+import grails.plugin.cookiesession.kryo.UserSerializer
+import grails.plugin.cookiesession.kryo.UsernamePasswordAuthenticationTokenSerializer
+import grails.plugin.cookiesession.kryo.WebAuthenticationDetailsSerializer
 import grails.plugin.springsecurity.authentication.GrailsAnonymousAuthenticationToken
 import groovy.util.logging.Slf4j
 import org.grails.web.servlet.GrailsFlashScope
@@ -67,22 +78,22 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
     }
 
     void serialize(SerializableSession session, OutputStream outputStream) {
-        kryoPool.run({ Kryo kryo ->
+        kryoPool.run { Kryo kryo ->
             log.trace 'starting serialize session'
             Output output = new Output(outputStream)
             kryo.writeObject(output, session)
             output.close()
-        })
+        }
     }
 
     SerializableSession deserialize(InputStream serializedSession) {
-        kryoPool.run({ Kryo kryo ->
+        kryoPool.run { Kryo kryo ->
             log.trace 'starting deserializing session'
             Input input = new Input(serializedSession)
             SerializableSession session = kryo.readObject(input, SerializableSession)
             log.trace 'finished deserializing session: {}', session
             return session
-        })
+        }
     }
 
     private Kryo getConfiguredKryoSerializer() {
@@ -94,18 +105,40 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
         kryo.fieldSerializerConfig.optimizedGenerics = true
         //kryo.registrationRequired = true
 
+        kryo.classLoader = grailsApplication.classLoader
+        log.trace 'grailsApplication.classLoader assigned to kryo.classLoader'
+
+        /**
+         * When registering serializers, the order is important. Re-ordering will cause incompatibility with
+         * previous serializations.
+         */
+
+        kryo.register(Arrays.asList('').getClass(), new ArraysAsListSerializer())
+        kryo.register(InvocationHandler.class, new JdkProxySerializer())
+        UnmodifiableCollectionsSerializer.registerSerializers(kryo)
+        SynchronizedCollectionsSerializer.registerSerializers(kryo)
+        log.trace 'configured kryo\'s standard serializers'
+
         kryo.register(SerializableSession, new SerializableSessionSerializer())
+        log.trace 'registered SerializableSession'
 
         kryo.register(GrailsFlashScope, new GrailsFlashScopeSerializer())
         log.trace 'registered FlashScopeSerializer'
 
-        kryo.register(Locale, new DefaultSerializers.LocaleSerializer())
+        try {
+            Class objectIdClass = grailsApplication.classLoader.loadClass('org.bson.types.ObjectId')
+            kryo.register(objectIdClass, new ByteArrayValueOfSerializer(objectIdClass))
+            log.trace 'org.bson.types.ObjectId serializer registered'
+        } catch (ClassNotFoundException e) {
+            log.trace 'org.bson.types.ObjectId not found, no serializer registered', e
+        }
 
         if (springSecurityCompatibility) {
 
             Class grailsUserClass
 
             Class usernamePasswordAuthenticationTokenClass = grailsApplication.classLoader.loadClass('org.springframework.security.authentication.UsernamePasswordAuthenticationToken')
+            Class rememberMeAuthenticationTokenClass = grailsApplication.classLoader.loadClass('org.springframework.security.authentication.RememberMeAuthenticationToken')
 
             if (springSecurityPluginVersion[0].toInteger() >= 2) {
                 grailsUserClass = grailsApplication.classLoader.loadClass('grails.plugin.springsecurity.userdetails.GrailsUser')
@@ -139,31 +172,12 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
             kryo.register(GrailsAnonymousAuthenticationToken, new GrailsAnonymousAuthenticationTokenSerializer())
             log.trace 'registered GrailsAnonymousAuthenticationToken serializer'
 
-            kryo.register(SecurityContextImpl)
-            kryo.register(RememberMeAuthenticationToken)
+            kryo.register(RememberMeAuthenticationToken, new RememberMeAuthenticationTokenSerializer(rememberMeAuthenticationTokenClass))
             kryo.register(WebAuthenticationDetails, new WebAuthenticationDetailsSerializer())
             kryo.register(DefaultSavedRequest, new DefaultSavedRequestSerializer(kryo))
+
+            kryo.register(SecurityContextImpl)
         }
-
-        UnmodifiableCollectionsSerializer.registerSerializers(kryo)
-        kryo.setClassLoader(grailsApplication.classLoader)
-        log.trace 'grailsApplication.classLoader assigned to kryo.classLoader'
-
-        kryo.register(Arrays.asList('').getClass(), new ArraysAsListSerializer())
-        kryo.register(HashMap)
-        kryo.register(TreeMap, new DefaultSerializers.TreeMapSerializer())
-        kryo.register(String[], new DefaultArraySerializers.StringArraySerializer())
-        kryo.register(Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer())
-        kryo.register(Collections.EMPTY_MAP.getClass(), new CollectionsEmptyMapSerializer())
-        kryo.register(Collections.EMPTY_SET.getClass(), new CollectionsEmptySetSerializer())
-        kryo.register(Collections.singletonList('').getClass(), new CollectionsSingletonListSerializer())
-        kryo.register(Collections.singleton('').getClass(), new CollectionsSingletonSetSerializer())
-        kryo.register(Collections.singletonMap('', '').getClass(), new CollectionsSingletonMapSerializer())
-        kryo.register(GregorianCalendar.class, new GregorianCalendarSerializer())
-        kryo.register(InvocationHandler.class, new JdkProxySerializer())
-
-        SynchronizedCollectionsSerializer.registerSerializers(kryo)
-        log.trace 'configured kryo\'s standard serializers'
 
         return kryo
     }

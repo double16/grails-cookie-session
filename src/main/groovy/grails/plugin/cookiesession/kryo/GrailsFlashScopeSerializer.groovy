@@ -12,13 +12,16 @@ import org.grails.web.servlet.GrailsFlashScope
 import java.lang.reflect.Field
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * Kryo serializer for org.grails.web.servlet.GrailsFlashScope.
+ */
 @CompileStatic
 class GrailsFlashScopeSerializer extends Serializer<GrailsFlashScope> {
     static final Field CURRENT_FIELD = GrailsFlashScope.getDeclaredField('current')
     static final Field NEXT_FIELD = GrailsFlashScope.getDeclaredField('next')
     static {
-        CURRENT_FIELD.setAccessible(true)
-        NEXT_FIELD.setAccessible(true)
+        CURRENT_FIELD.accessible = true
+        NEXT_FIELD.accessible = true
     }
 
     private final MapSerializer mapSerializer

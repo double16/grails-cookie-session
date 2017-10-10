@@ -21,6 +21,9 @@ package grails.plugin.cookiesession
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+/**
+ * Replaces exception objects in the session with the message string.
+ */
 @Slf4j
 @CompileStatic
 class ExceptionCondenser implements SessionPersistenceListener {

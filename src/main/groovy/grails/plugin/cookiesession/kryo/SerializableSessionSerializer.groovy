@@ -7,9 +7,11 @@ import com.esotericsoftware.kryo.io.Output
 import com.esotericsoftware.kryo.serializers.DefaultSerializers
 import com.esotericsoftware.kryo.serializers.MapSerializer
 import grails.plugin.cookiesession.SerializableSession
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @Slf4j
+@CompileStatic
 class SerializableSessionSerializer extends Serializer<SerializableSession> {
     private final MapSerializer mapSerializer
 

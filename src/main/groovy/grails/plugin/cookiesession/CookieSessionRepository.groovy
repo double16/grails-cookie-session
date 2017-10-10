@@ -45,6 +45,7 @@ import java.util.zip.InflaterInputStream
 @Slf4j
 class CookieSessionRepository implements SessionRepository, InitializingBean, ApplicationContextAware {
     public static final String DEFAULT_CRYPTO_ALGORITHM = 'Blowfish'
+    public static final String SERVLET_CONTEXT_BEAN = 'servletContext'
 
     GrailsApplication grailsApplication
     ApplicationContext applicationContext
@@ -75,8 +76,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         log.info 'configuring CookieSessionRepository'
 
-        if (applicationContext.containsBean('servletContext')) {
-            servletContext = (ServletContext) applicationContext.getBean('servletContext')
+        if (applicationContext.containsBean(SERVLET_CONTEXT_BEAN)) {
+            servletContext = (ServletContext) applicationContext.getBean(SERVLET_CONTEXT_BEAN)
         }
 
         assignSettingFromConfig('useSessionCookieConfig', false, Boolean, 'useSessionCookieConfig')
@@ -91,7 +92,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             }
         }
 
-        // if useSessionCookieConfig, then attach to invokeMethod and setProperty so that the values can be intercepted and assigned to local variables
+        // if useSessionCookieConfig, then attach to invokeMethod and setProperty so that the values can be
+        // intercepted and assigned to local variables
         if (useSessionCookieConfig) {
 
             servletContext.sessionCookieConfig.class.metaClass.invokeMethod = { String method, Object[] args ->
@@ -368,6 +370,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             stream = new CipherOutputStream(stream, cipher)
         }
 
+        // TODO: SnappyOutputStream from snappy-java library
         stream = new DeflaterOutputStream(stream, new Deflater(Deflater.BEST_SPEED), maxSessionSize)
 
         log.trace 'serializing session'

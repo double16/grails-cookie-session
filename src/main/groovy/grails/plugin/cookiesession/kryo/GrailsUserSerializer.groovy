@@ -8,6 +8,9 @@ import groovy.util.logging.Slf4j
 
 import java.lang.reflect.Constructor
 
+/**
+ * Kryo serializer for grails.plugin.springsecurity.userdetails.GrailsUser.
+ */
 @Slf4j
 class GrailsUserSerializer extends Serializer<Object> {
     final Class targetClass
@@ -22,7 +25,7 @@ class GrailsUserSerializer extends Serializer<Object> {
     void write(Kryo kryo, Output output, Object user) {
         log.trace 'starting writing {}', user
         //NOTE: not writing authorities on purpose - those get written as part of the UsernamePasswordAuthenticationToken
-        output.writeString(user.id as String)
+        kryo.writeClassAndObject(output, user.id)
         output.writeString(user.username as String)
         output.writeBoolean(user.accountNonExpired as boolean)
         output.writeBoolean(user.accountNonLocked as boolean)
@@ -35,7 +38,7 @@ class GrailsUserSerializer extends Serializer<Object> {
     @Override
     Object read(Kryo kryo, Input input, Class<Object> type) {
         log.trace 'starting reading GrailsUser'
-        String id = input.readString()
+        def id = kryo.readClassAndObject(input)
         String username = input.readString()
         boolean accountNonExpired = input.readBoolean()
         boolean accountNonLocked = input.readBoolean()

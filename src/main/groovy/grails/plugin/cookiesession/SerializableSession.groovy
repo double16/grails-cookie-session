@@ -61,7 +61,7 @@ class SerializableSession implements HttpSession, Serializable {
     private static final long serialVersionUID = 42L
     private long creationTime = 0
     long lastAccessedTime = 0
-    private Map<String, Serializable> attributes = new HashMap<String, Serializable>()
+    private Map<String, Serializable> attributes = [:]
 
     transient boolean isValid = true
     transient boolean dirty = false
@@ -80,6 +80,8 @@ class SerializableSession implements HttpSession, Serializable {
         this.creationTime = creationTime
         this.lastAccessedTime = lastAccessedTime
         this.attributes = attributes
+        this.dirty = false
+        digest = digestOfSession()
     }
 
     long getCreationTime() {
@@ -223,6 +225,8 @@ class SerializableSession implements HttpSession, Serializable {
 
     @Override
     String toString() {
-        attributes.collect { k, v -> "${k}=${ReflectionToStringBuilder.toString(v, ToStringStyle.MULTI_LINE_STYLE)}" }.join('\n')
+        attributes.collect { k, v ->
+            "${k}=${ReflectionToStringBuilder.toString(v, ToStringStyle.MULTI_LINE_STYLE)}"
+        }.join('\n')
     }
 }
