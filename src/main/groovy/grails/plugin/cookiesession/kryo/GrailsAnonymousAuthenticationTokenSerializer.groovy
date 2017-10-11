@@ -10,6 +10,9 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken
 
 import java.lang.reflect.Field
 
+/**
+ * Kryo serializer for GrailsAnonymousAuthenticationToken.
+ */
 @CompileStatic
 class GrailsAnonymousAuthenticationTokenSerializer extends Serializer<GrailsAnonymousAuthenticationToken> {
     static final Field KEY_HASH_FIELD = AnonymousAuthenticationToken.getDeclaredField('keyHash')

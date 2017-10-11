@@ -9,6 +9,10 @@ import groovy.util.logging.Slf4j
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 
+/**
+ * Kryo serializer for RememberMeAuthenticationToken. This class is not specific to a class, but
+ * does expect properties consistent with RememberMeAuthenticationToken.
+ */
 @Slf4j
 class RememberMeAuthenticationTokenSerializer extends Serializer<Object> {
     final Class targetClass

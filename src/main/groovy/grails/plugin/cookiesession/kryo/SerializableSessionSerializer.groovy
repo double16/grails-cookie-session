@@ -10,6 +10,9 @@ import grails.plugin.cookiesession.SerializableSession
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+/**
+ * Kryo serializer for SerializableSession. The deserialized session will be marked as not new and not dirty.
+ */
 @Slf4j
 @CompileStatic
 class SerializableSessionSerializer extends Serializer<SerializableSession> {

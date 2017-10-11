@@ -9,6 +9,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails
 
 import java.lang.reflect.Field
 
+/**
+ * Kryo serializer for WebAuthenticationDetails.
+ */
 @CompileStatic
 class WebAuthenticationDetailsSerializer extends Serializer<WebAuthenticationDetails> {
     static final Field REMOTEADDR_FIELD = WebAuthenticationDetails.getDeclaredField('remoteAddress')

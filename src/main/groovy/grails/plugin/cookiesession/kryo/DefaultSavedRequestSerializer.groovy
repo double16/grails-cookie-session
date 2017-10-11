@@ -5,6 +5,9 @@ import com.esotericsoftware.kryo.serializers.FieldSerializer
 import groovy.transform.CompileStatic
 import org.springframework.security.web.savedrequest.DefaultSavedRequest
 
+/**
+ * Kryo serializer for DefaultSavedRequest.
+ */
 @CompileStatic
 class DefaultSavedRequestSerializer extends FieldSerializer<DefaultSavedRequest> {
     DefaultSavedRequestSerializer(Kryo kryo) {

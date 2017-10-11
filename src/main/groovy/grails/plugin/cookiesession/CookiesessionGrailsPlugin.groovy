@@ -3,6 +3,9 @@ package grails.plugin.cookiesession
 import grails.plugins.Plugin
 import org.springframework.core.Ordered
 
+/**
+ * Grails plugin implementation for cookie-session.
+ */
 class CookiesessionGrailsPlugin extends Plugin {
 
     def grailsVersion = '3.0.0 > *'
@@ -37,8 +40,8 @@ The Cookie Session plugin enables grails applications to store session data in h
                 bean.autowire = 'byName'
             }
 
-            if (config.grails.plugin.cookiesession.containsKey('condenseexceptions') &&
-                    config.grails.plugin.cookiesession['condenseexceptions'] == true) {
+            if (config.grails.plugin.cookiesession.containsKey('condenseexceptions')
+                    && config.grails.plugin.cookiesession['condenseexceptions'] == true) {
                 exceptionCondenser(ExceptionCondenser)
             }
 
@@ -47,13 +50,15 @@ The Cookie Session plugin enables grails applications to store session data in h
                 bean.autowire = 'byName'
             }
 
-            if (config.grails.plugin.cookiesession.containsKey('serializer') && config.grails.plugin.cookiesession['serializer'] == 'kryo') {
+            if (config.grails.plugin.cookiesession.containsKey('serializer')
+                    && config.grails.plugin.cookiesession['serializer'] == 'kryo') {
                 kryoSessionSerializer(KryoSessionSerializer) { bean ->
                     bean.autowire = 'byName'
                 }
             }
 
-            if (config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility') && config.grails.plugin.cookiesession['springsecuritycompatibility'] == true) {
+            if (config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility')
+                    && config.grails.plugin.cookiesession['springsecuritycompatibility'] == true) {
                 securityContextSessionPersistenceListener(SecurityContextSessionPersistenceListener) { bean ->
                     bean.autowire = 'byName'
                 }

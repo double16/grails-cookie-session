@@ -18,6 +18,14 @@
  */
 package grails.plugin.cookiesession
 
+/**
+ * Interface for objects that can serialize an HttpSession into an OutputStream and deserialize from
+ * an InputStream. It is expected that given an implementation of this interface can deserialize sessions
+ * across JVM invocations assuming any configuration remains the same. It is not expected that differing
+ * implementations can deserialize each other's sessions.
+ *
+ * Do not compress, encrypt or encode the serialized data. These functions will be done by the caller.
+ */
 interface SessionSerializer {
 
     void serialize(SerializableSession session, OutputStream outputStream)

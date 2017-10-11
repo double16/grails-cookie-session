@@ -21,6 +21,10 @@ package grails.plugin.cookiesession
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * Defines a persistent storage mechanism for HttpSession objects. Storage is expected to be independent of JVM process
+ * such that sessions survive restarts and can be used across concurrent JVMs.
+ */
 interface SessionRepository {
     SerializableSession restoreSession(HttpServletRequest request)
 

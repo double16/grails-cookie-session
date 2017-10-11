@@ -51,6 +51,10 @@ import org.springframework.security.web.savedrequest.DefaultSavedRequest
 
 import java.lang.reflect.InvocationHandler
 
+/**
+ * Session serializer using Kryo. Kryo is designed for performance and small results. Several common Grails
+ * classes have specific serializers to reduce the size of the data.
+*/
 @Slf4j
 class KryoSessionSerializer implements SessionSerializer, InitializingBean {
     GrailsApplication grailsApplication

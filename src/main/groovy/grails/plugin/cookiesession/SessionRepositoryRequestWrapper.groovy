@@ -26,6 +26,10 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 import javax.servlet.http.HttpSession
 
+/**
+ * Delegates responsibility for retrieving session data from persistence storage to an instance of a SessionRepository
+ * object and for managing an instance of SerializableSession.
+ */
 @CompileStatic
 @Slf4j
 class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
@@ -64,7 +68,6 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     HttpSession getSession(boolean create) {
-
         log.trace('getSession({})', create)
 
         if (session == null && create) {
@@ -74,13 +77,13 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
             session.setServletContext(servletContext)
         }
 
-        return (session)
+        return session
     }
 
     @Override
     HttpSession getSession() {
         log.trace('getSession()')
-        return (this.getSession(true))
+        return this.getSession(true)
     }
 
     @Override

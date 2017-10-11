@@ -13,6 +13,9 @@ import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * Wraps the request and response so that access to the session is delegated to the SessionRepository.
+ */
 @CompileStatic
 @Slf4j
 class CookieSessionFilter extends OncePerRequestFilter implements InitializingBean, ApplicationContextAware {
@@ -47,10 +50,8 @@ class CookieSessionFilter extends OncePerRequestFilter implements InitializingBe
                                     HttpServletResponse response,
                                     FilterChain chain) throws IOException, ServletException {
 
-        log.trace('doFilterInteral()')
-        log.trace('request type: {}', request.class)
-        log.trace('response type: {}', response.class)
-        log.trace('filterchain type: {}', chain.class.name)
+        log.trace('doFilterInternal(), request type: {}, response type: {}, filter chain type: {}',
+                request.class.name, response.class.name, chain.class.name)
 
         SessionRepositoryRequestWrapper requestWrapper = new SessionRepositoryRequestWrapper(request, sessionRepository)
         requestWrapper.servletContext = this.servletContext

@@ -22,6 +22,10 @@ import grails.core.GrailsApplication
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+/**
+ * Session serializer using serialization built-in to the JDK. This method is the most compatible but
+ * is also slow and produces large results.
+ */
 @CompileStatic
 @Slf4j
 class JavaSessionSerializer implements SessionSerializer {

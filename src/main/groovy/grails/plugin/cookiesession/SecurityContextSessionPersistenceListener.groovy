@@ -24,6 +24,24 @@ import org.springframework.beans.factory.InitializingBean
 
 import java.util.regex.Pattern
 
+/**
+ * Handles spring-security-core specifics for session attributes.
+ *
+ * The primary issue addressed relates to when the spring-security core's SecurityContextPersistenceFilter
+ * writes the current security context to the SecurityContextRepository. In most cases, the
+ * SecurityContextPersistenceFilter stores the current security context after the current web response has been written.
+ * This is a problem for the cookie-session plugin because the session is stored in cookies in the web response. As a
+ * result, the current security context is never saved in the session, in effect losing the security context after each
+ * request. To work around this issue, the cookie-session plugin writes the
+ * current security context to the session just before the session is serialized and saved in cookies.
+ *
+ * The next issue involves cookies saved in the DefaultSavedRequest. DefaultSavedRequest is created by spring security
+ * core and stored in the session during redirects, such as after authentication. This listener detects the presence of
+ * a DefaultSavedRequest in the session and removes any
+ * cookie-session cookies it may be storing. This ensures that old session information doesn't replace more current
+ * session information when following a redirect. This also reduces the size of the the serialized session because the
+ * DefaultSavedRequest is storing an old copy of a session in the current session.
+ */
 @Slf4j
 class SecurityContextSessionPersistenceListener implements SessionPersistenceListener, InitializingBean {
     static final String SPRING__SECURITY__CONTEXT = 'SPRING_SECURITY_CONTEXT'
@@ -75,7 +93,8 @@ class SecurityContextSessionPersistenceListener implements SessionPersistenceLis
             }
         }
 
-        if (session.getAttribute(SPRING__SECURITY__CONTEXT) && !session.getAttribute(SPRING__SECURITY__CONTEXT).is(securityContextHolder.getContext())) {
+        if (session.getAttribute(SPRING__SECURITY__CONTEXT)
+                && !session.getAttribute(SPRING__SECURITY__CONTEXT).is(securityContextHolder.getContext())) {
             log.info 'persisting security context to session'
             session.setAttribute(SPRING__SECURITY__CONTEXT, securityContextHolder.getContext())
         } else {

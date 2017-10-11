@@ -18,6 +18,9 @@
  */
 package grails.plugin.cookiesession
 
+/**
+ * Defines a listener for the serialized session lifecycle.
+ */
 interface SessionPersistenceListener {
     void afterSessionRestored(SerializableSession session)
 

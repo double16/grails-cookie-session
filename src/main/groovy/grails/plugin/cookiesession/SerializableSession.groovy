@@ -31,6 +31,10 @@ import javax.servlet.http.HttpSessionContext
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 
+/**
+ * HttpSession implementation designed for serialization. It also includes deep dirty checking to optimize when the
+ * session needs to be sent back to the client. All attribute values in the session must implement Serializable.
+ */
 @CompileStatic
 @Slf4j
 class SerializableSession implements HttpSession, Serializable {
@@ -59,7 +63,7 @@ class SerializableSession implements HttpSession, Serializable {
     }
 
     private static final long serialVersionUID = 42L
-    private long creationTime = 0
+    private final long creationTime
     long lastAccessedTime = 0
     private Map<String, Serializable> attributes = [:]
 

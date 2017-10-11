@@ -22,7 +22,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 /**
- * Replaces exception objects in the session with the message string.
+ * Replaces exception objects in the session with the message string. Exception objects make the serialized
+ * session much larger.
  */
 @Slf4j
 @CompileStatic

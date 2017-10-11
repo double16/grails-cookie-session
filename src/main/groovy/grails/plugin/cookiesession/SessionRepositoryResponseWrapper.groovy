@@ -25,6 +25,9 @@ import javax.servlet.ServletOutputStream
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponseWrapper
 
+/**
+ * Delegates saving sessions to persistent storage using an instance of SessionRepository.
+ */
 @CompileStatic
 @Slf4j
 class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
@@ -123,14 +126,14 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
     PrintWriter getWriter() throws IOException {
         log.trace('intercepting getWriter to save session')
         this.saveSession()
-        return (super.getWriter())
+        super.getWriter()
     }
 
     @Override
     ServletOutputStream getOutputStream() throws IOException {
         log.trace('intercepting getOutputStream to save session')
         this.saveSession()
-        return (super.getOutputStream())
+        super.getOutputStream()
     }
 
     @Override

@@ -302,16 +302,16 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
     }
 
-    private boolean assignSettingFromConfig(def settingName, def defaultValue, Class t, def targetPropertyName) {
+    private boolean assignSettingFromConfig(String settingName, defaultValue, Class t, String targetPropertyName) {
         boolean assignedSetting
         try {
             def configKey = grailsApplication.config.grails.plugin.cookiesession.find { k, v -> k.equalsIgnoreCase(settingName) }
             if (configKey) {
-                this.(targetPropertyName.toString()) = configKey.value.asType(t)
-                log.info "grails.plugin.cookiesession.${configKey.key} set: \'${this.(targetPropertyName.toString())}\'"
+                this.(targetPropertyName) = configKey.value.asType(t)
+                log.info "grails.plugin.cookiesession.${configKey.key} set: \'${this.(targetPropertyName)}\'"
                 assignedSetting = true
             } else {
-                this.(targetPropertyName.toString()) = defaultValue
+                this.(targetPropertyName) = defaultValue
                 log.info "configuring ${settingName} to default value: ${defaultValue}"
                 return false
             }
@@ -340,7 +340,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             // - check to see if the session is expired
             // - return the session
 
-            def serializedSession = getDataFromCookie(request)
+            String serializedSession = getDataFromCookie(request)
 
             if (serializedSession) {
                 session = deserializeSession(serializedSession, request)

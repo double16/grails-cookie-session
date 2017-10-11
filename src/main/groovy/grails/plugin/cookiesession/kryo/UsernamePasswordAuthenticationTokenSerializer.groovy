@@ -8,6 +8,10 @@ import groovy.util.logging.Slf4j
 
 import java.lang.reflect.Constructor
 
+/**
+ * Kryo serializer for UsernamePasswordAuthenticationToken. This class is not specific to a class, but
+ * does expect properties consistent with UsernamePasswordAuthenticationToken.
+ */
 @Slf4j
 class UsernamePasswordAuthenticationTokenSerializer extends Serializer<Object> {
     final Class targetClass
