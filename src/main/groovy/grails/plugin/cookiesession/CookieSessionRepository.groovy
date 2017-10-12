@@ -308,12 +308,13 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         boolean assignedSetting
         try {
             def configKey = grailsApplication.config.grails.plugin.cookiesession.find { k, v -> k.equalsIgnoreCase(settingName) }
+            // targetPropertyName.toString() is necessary to keep Groovy from taking 'targetPropertyName' literally
             if (configKey) {
-                this.(targetPropertyName) = configKey.value.asType(t)
-                log.info "grails.plugin.cookiesession.${configKey.key} set: \'${this.(targetPropertyName)}\'"
+                this.(targetPropertyName.toString()) = configKey.value.asType(t)
+                log.info "grails.plugin.cookiesession.${configKey.key} set: \'${this.(targetPropertyName.toString())}\'"
                 assignedSetting = true
             } else {
-                this.(targetPropertyName) = defaultValue
+                this.(targetPropertyName.toString()) = defaultValue
                 log.info "configuring ${settingName} to default value: ${defaultValue}"
                 return false
             }
