@@ -16,7 +16,6 @@
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
-
 package grails.plugin.cookiesession
 
 import groovy.transform.CompileStatic

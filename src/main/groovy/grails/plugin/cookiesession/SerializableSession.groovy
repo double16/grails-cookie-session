@@ -205,9 +205,9 @@ class SerializableSession implements HttpSession, Serializable {
 
     static final OutputStream NULL_OUTPUTSTREAM = new OutputStream() {
         @Override
-        void write(int b) throws IOException {}
+        void write(int b) throws IOException { }
         @Override
-        void write(byte[] b, int off, int len) throws IOException {}
+        void write(byte[] b, int off, int len) throws IOException { }
     }
 
     /**
