@@ -551,7 +551,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         if (value.length() > maxCookieSize * cookieCount) {
             log.error "Serialized session exceeds maximum session size that can be stored in cookies. Max size: ${maxCookieSize * cookieCount}, Requested Session Size: ${value.length()}."
-            throw new IOException('Serialized session exceeded max size.')
+            throw new MaxSessionSizeException("Serialized session exceeded max size, ${value.length()} > ${maxCookieSize * cookieCount}")
         }
 
         String[] partitions = splitString(value)
