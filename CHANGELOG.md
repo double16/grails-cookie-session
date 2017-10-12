@@ -1,5 +1,9 @@
 ## 4.0.0 (Unreleased)
 
+SERIALIZATION COMPATABIITY:
+
+- Incompatible with previous versions
+
 FEATURES:
 
 - Project transferred to Patrick Double, https://github.com/double16

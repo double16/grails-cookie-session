@@ -21,7 +21,7 @@ plugins {
     id "com.github.ben-manes.versions" version "0.15.0"
 }
 
-version "4.0.0-SNAPSHOT"
+version "4.0.0.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
 group "org.grails.plugins"
 description "The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server."
 
@@ -85,15 +85,27 @@ jar {
 }
 
 grailsPublish {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_APIKEY')
-    githubSlug = 'benlucchesi/grails-cookie-session'
+    githubSlug = 'double16/grails-cookie-session'
     license {
         name = 'Apache-2.0'
     }
-    title = "cookie-session"
+    title = 'cookie-session'
     desc = project.description
-    developers = [benlucchesi:"Ben Lucchesi", double16:"Patrick Double"]
+    developers = [double16: 'Patrick Double', benlucchesi: 'Ben Lucchesi']
+    websiteUrl = 'https://github.com/double16/grails-cookie-session'
+    issueTrackerUrl = 'https://github.com/double16/grails-cookie-session/issues'
+    vcsUrl = 'https://github.com/double16/grails-cookie-session.git'
+
+    if (version ==~ /.*\.\d\d\d\d\d\d\d\d\d\d\d\d\d\d$/) {
+        repo = 'plugins-snapshots'
+    }
+}
+
+bintray {
+    pkg {
+        publicDownloadNumbers = true
+        githubReleaseNotesFile = 'README.md'
+    }
 }
 
 quality {
