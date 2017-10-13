@@ -56,6 +56,7 @@ import java.util.zip.InflaterInputStream
 class CookieSessionRepository implements SessionRepository, InitializingBean, ApplicationContextAware {
     public static final String DEFAULT_CRYPTO_ALGORITHM = 'Blowfish'
     public static final String SERVLET_CONTEXT_BEAN = 'servletContext'
+    private static final float DEFAULT_WARN_THRESHOLD = 0.8f
 
     GrailsApplication grailsApplication
     ApplicationContext applicationContext
@@ -71,7 +72,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
     int cookieCount = 5
     int maxCookieSize = 2048
-    float warnThreshold = 0.8f
+    float warnThreshold = DEFAULT_WARN_THRESHOLD
 
     String cookieName
     Boolean secure
@@ -157,7 +158,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         assignSettingFromConfig('domain', null, String, 'domain')
         assignSettingFromConfig('comment', null, String, 'comment')
         assignSettingFromConfig('sessiontimeout', -1, Long, 'maxInactiveInterval')
-        assignSettingFromConfig( 'warnthreshold', 0.8f, Float, 'warnThreshold')
+        assignSettingFromConfig( 'warnthreshold', DEFAULT_WARN_THRESHOLD, Float, 'warnThreshold')
 
         if (useSessionCookieConfig) {
             this.cookieName = servletContext.sessionCookieConfig.name ?: cookieName
@@ -376,7 +377,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
                     float currentPercentage = serializedSession.length() / (maxCookieSize * cookieCount)
                     if (currentPercentage >= warnThreshold) {
-                        log.warn "cookie approaching maximum size. maxCookieSize: {}, currentSize: {}, percent: {}", maxCookieSize * cookieCount, serializedSession.length(), Math.round(currentPercentage * 100)
+                        log.warn 'cookie approaching maximum size. maxCookieSize: {}, currentSize: {}, percent: {}', maxCookieSize * cookieCount, serializedSession.length(), Math.round(currentPercentage * 100)
                     }
                 } else if (inactiveInterval > maxInactiveIntervalMillis) {
                     log.info 'retrieved expired session from cookie. lastAccessedTime: {}. expired by {} ms.', new Date(lastAccessedTime), inactiveInterval
@@ -494,6 +495,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
             SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
             session = sessionSerializer.deserialize(stream)
+            session.isValid = true
         }
         catch (excp) {
             log.error 'An error occurred while deserializing a session.', excp
@@ -512,7 +514,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         return session
     }
 
-    private String[] splitString(String input) {
+    protected String[] splitString(String input) {
         log.trace 'splitString()'
 
         String[] list = new String[cookieCount]

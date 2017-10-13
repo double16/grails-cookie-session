@@ -45,6 +45,7 @@ class SerializableSession implements HttpSession, Serializable {
     /* ServletAPI */
     private
     static final HttpSessionContext SESSION_CONTEXT = new HttpSessionContext() {
+        @SuppressWarnings('UnusedMethodParameter')
         HttpSession getSession(String sessionId) {
             null
         }
@@ -69,8 +70,8 @@ class SerializableSession implements HttpSession, Serializable {
     long lastAccessedTime = 0
     private Map<String, Serializable> attributes = [:]
 
-    transient boolean isValid = true
-    transient boolean dirty = false
+    transient boolean isValid
+    transient boolean dirty
     /** digest of 'clean' session, used for dirty checking */
     transient byte[] digest
     transient ServletContext servletContext
@@ -80,12 +81,15 @@ class SerializableSession implements HttpSession, Serializable {
     SerializableSession() {
         this.creationTime = System.currentTimeMillis()
         this.lastAccessedTime = this.creationTime
+        this.isValid = true
+        this.dirty = false
     }
 
     SerializableSession(long creationTime, long lastAccessedTime, Map<String, Serializable> attributes) {
         this.creationTime = creationTime
         this.lastAccessedTime = lastAccessedTime
         this.attributes = attributes
+        this.isValid = true
         this.dirty = false
         digest = digestOfSession()
     }
