@@ -19,11 +19,13 @@ When sessions are stored in memory on the server, if an application crashes or b
 
 # Installation
 
-edit build.gradle add the following line under the plugins closure
-
+Edit `build.gradle` add the following line under the plugins closure
+```groovy
   compile 'org.grails.plugins:cookie-session:4.0.0'
+```
 
 # Configuration
+
 The following parameters are supported directly by the cookie-session plugin. Note, additional configuration is needed for large session support. See additional instructions below.
 
 ## Parameters
@@ -36,6 +38,7 @@ The following parameters are supported directly by the cookie-session plugin. No
 | grails.plugin.cookiesession.secret                      | **generated**  | The secret key used to encrypt session data. If not set, a random key will be created at runtime. Set this parameter if deploying multiple instances of the application or if sessions need to survive a server crash or restart. sessions to be recovered after a server crash or restart. |
 | grails.plugin.cookiesession.cookiecount                 | 5              | The maximum number of cookies that are created to store the session in |
 | grails.plugin.cookiesession.maxcookiesize               | 2048           | The max size for each cookie expressed in bytes. |
+| grails.plugin.cookiesession.warnthreshold               | 0.8            | Threshold for logging a warning when the cookie size becomes equal to or greater than the total maximum cookie size (cookieCount * maxCookieSize) |
 | grails.plugin.cookiesession.sessiontimeout              | 0              | The length of time a session can be inactive for expressed in seconds. -1 indicates that a session will be active for as long as the browser is open. |
 | grails.plugin.cookiesession.cookiename                  | gsession-X     | X number of cookies will be written per the cookiecount parameter. Each cookie is suffixed with the integer index of the cookie. |
 | grails.plugin.cookiesession.condenseexceptions          | false          | replaces instances of Exceptions objects in the session with the Exception.getMessage() in the session (see SessionPersistanceListener for further details) |
@@ -56,27 +59,29 @@ The following parameters are supported directly by the cookie-session plugin. No
 ## Example
 
 application.yml
-
-        grails:
-          plugin:
-            cookiesession:
-              enabled: true
-              encryptcookie: true
-              cryptoalgorithm: "Blowfish"
-              secret: "This is my secret."
-              cookiecount: 10
-              maxcookiesize: 2048  // 2kb
-              sessiontimeout: 3600 // one hour
-              cookiename: 'gsession'
-              condenseexceptions: false
-              setsecure: true
-              httponly: false
-              path: '/'
-              comment: 'Acme Session Info'
-              serializer: 'kryo'
-              springsecuritycompatibility: true
+```yaml
+grails:
+  plugin:
+    cookiesession:
+      enabled: true
+      encryptcookie: true
+      cryptoalgorithm: "Blowfish"
+      secret: "This is my secret."
+      cookiecount: 10
+      maxcookiesize: 2048  // 2kb
+      sessiontimeout: 3600 // one hour
+      cookiename: 'gsession'
+      condenseexceptions: false
+      setsecure: true
+      httponly: false
+      path: '/'
+      comment: 'Acme Session Info'
+      serializer: 'kryo'
+      springsecuritycompatibility: true
+```
 
 ## Understanding cookiecount and maxcookiesize
+
 The maximum session size stored by this plugin is calculated by (cookiecount * maxcookiesize). The reason for these two parameters is that through experimentation, some browsers didn't reliably set large cookies set before the subsequent request. To solve this issue, this plugin supports configuring the max size of each cookie stored and the number of cookies to span the session over. The default values are conservative. If sessions exceed the max session size as configured, first increase the cookiecount and then the maxcookiesize parameters.
 
 ## Enabling large session
@@ -85,6 +90,7 @@ To enable large sessions, increase the max http header size for the servlet cont
 Due to the potentially large amount of data that may be stored, consider setting it to something large, such as 262144 ( 256kb ).
 
 *the following are for grails 2.x, needs to be updated for 3.x - investigating*
+
 ### Tomcat
 Edit the server.xml and set the connector's maxHttpHeaderSize parameter. 
 
@@ -109,11 +115,14 @@ Edit the jetty.xml or web.xml and set the connector's requestHeaderSize and resp
         }
 
 ## SessionPersistenceListener
+
 SessionPersistenceListener is an interface used inspect the session just after its been deserialized from persistent storage and just before being serialized and persisted. 
 
 SessionPersistenceListener defines the following methods:
+```groovy
     void afterSessionRestored( SerializableSession session )
     void beforeSessionSaved( SerializableSession session )
+```
 
 To use, write a class that implements this interface and define the object in the application's spring application context (grails-app/conf/spring/resources.groovy). The CookieSession plugin will scan the application context and retrieve references to all classes that implement SessionPersistenceListener. The order that the SessionPersistenceListeners are called is unspecified. For an example of how to implement a SessionPersistenceListener, see the ExceptionCondenser class which is part of the cookie-session plugin.
 
@@ -137,12 +146,13 @@ When compatibility with Spring Security is enabled the plugin may enforce new se
 SessionCookieConfig is a interface introduced in Servlet 3.0 and is used to specify configuration parameters of session cookies. If you enable the `grails.plugin.cookiesession.usesessioncookieconfig` parameter, then this interface is used to configure the cookie session cookies. In order for this option to work, the servlet context must be servlet context version 3.0 or great. 
 
 The following is an example of how to use the SessionCookieConfig to configure cookies in the init closure in BootStrap.groovy.
-
+```groovy
         if( servletContext.majorVersion >= 3 ){
           servletContext.sessionCookieConfig.name = 'sugar2'
           servletContext.sessionCookieConfig.secure = false
           servletContext.sessionCookieConfig.maxAge = 3600
         }
+```
 
 ## WARNING on updating cookie specifications and general recommendations
 Be warned, updating the cookie specification can cause unexpected results and cause your application to fail. In general, you should not update the cookie specification once an application is in production. If you do, multiple cookies with the same name will be saved back to the browser and will be sent back to your application, which will undoubtedly cause deserialization of the session cookie to fail. Here are some general recommendations on how to configure cookie session cookie, either with the plugin's configuration options or with the SessionCookieConfig:

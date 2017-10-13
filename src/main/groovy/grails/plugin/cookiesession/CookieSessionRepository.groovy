@@ -71,6 +71,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
     int cookieCount = 5
     int maxCookieSize = 2048
+    float warnThreshold = 0.8f
 
     String cookieName
     Boolean secure
@@ -156,6 +157,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         assignSettingFromConfig('domain', null, String, 'domain')
         assignSettingFromConfig('comment', null, String, 'comment')
         assignSettingFromConfig('sessiontimeout', -1, Long, 'maxInactiveInterval')
+        assignSettingFromConfig( 'warnthreshold', 0.8f, Float, 'warnThreshold')
 
         if (useSessionCookieConfig) {
             this.cookieName = servletContext.sessionCookieConfig.name ?: cookieName
@@ -165,7 +167,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             this.domain = servletContext.sessionCookieConfig.domain ?: domain
             this.comment = servletContext.sessionCookieConfig.comment ?: comment
             this.maxInactiveInterval = servletContext.sessionCookieConfig.maxAge ?: maxInactiveInterval
-            log.trace "processed sessionCookieConfig. cookie settings are: [name: ${cookieName}, httpOnly: ${httpOnly}, secure: ${secure}, path: ${path}, domain: ${domain}, comment: ${comment}, maxAge: ${maxInactiveInterval}]"
+            this.warnThreshold = servletContext.sessionCookieConfig.warnThreshold ?: warnThreshold
+            log.trace "processed sessionCookieConfig. cookie settings are: [name: ${cookieName}, httpOnly: ${httpOnly}, secure: ${secure}, path: ${path}, domain: ${domain}, comment: ${comment}, maxAge: ${maxInactiveInterval}, warnThreshold: ${warnThreshold}]"
         }
 
         if (grailsApplication.config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility')) {
@@ -264,6 +267,9 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                 case 'setMaxAge':
                     this.maxInactiveInterval = args[0] as long
                     break
+                case 'setWarnThreshold':
+                    this.warnThreshold = args[0] as long
+                    break
             }
 
             servletContext.sessionCookieConfig.metaClass.methods.find {
@@ -294,6 +300,9 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     break
                 case 'maxAge':
                     this.maxInactiveInterval = value
+                    break
+                case 'warnThreshold':
+                    this.warnThreshold = value
                     break
             }
 
@@ -364,6 +373,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     session.lastAccessedTime = System.currentTimeMillis()
                     session.servletContext = request.servletContext
                     session.dirty = false
+
+                    float currentPercentage = serializedSession.length() / (maxCookieSize * cookieCount)
+                    if (currentPercentage >= warnThreshold) {
+                        log.warn "cookie approaching maximum size. maxCookieSize: {}, currentSize: {}, percent: {}", maxCookieSize * cookieCount, serializedSession.length(), Math.round(currentPercentage * 100)
+                    }
                 } else if (inactiveInterval > maxInactiveIntervalMillis) {
                     log.info 'retrieved expired session from cookie. lastAccessedTime: {}. expired by {} ms.', new Date(lastAccessedTime), inactiveInterval
                     session = null

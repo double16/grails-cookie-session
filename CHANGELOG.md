@@ -1,12 +1,13 @@
 ## 4.0.0 (Unreleased)
 
-SERIALIZATION COMPATABIITY:
+SERIALIZATION COMPATIBILITY:
 
 - Incompatible with previous versions
 
 FEATURES:
 
 - Project transferred to Patrick Double, https://github.com/double16
+- Cookie size threshold logging [PR-35](https://github.com/benlucchesi/grails-cookie-session/pull/35) (@robzienert)
 
 IMPROVEMENTS:
 
@@ -14,7 +15,7 @@ IMPROVEMENTS:
 - Use Snappy compression if native library is found (fallback to deflate)
 - Performance improvements
 - Add (deep) dirty checking support and only set cookies if changed, fixes [GH-48](https://github.com/benlucchesi/grails-cookie-session/issues/48) (@exell-christopher, @double16)
-- Throw MaxSizeExceededException instead of raw exception when session max size is exceeded ~ [PR-71](https://github.com/benlucchesi/grails-cookie-session/pull/71) (@sanmibuh)
+- Throw MaxSizeExceededException instead of raw exception when session max size is exceeded, [PR-71](https://github.com/benlucchesi/grails-cookie-session/pull/71) (@sanmibuh)
 
 BUG FIXES:
 
