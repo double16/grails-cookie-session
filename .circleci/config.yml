@@ -131,10 +131,7 @@ jobs:
           command: |
             set -x
             # release versions
-            if [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*$ ]]; then
-              ./gradlew publishPlugins
-            # pre-release versions
-            elif [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*[.][A-Za-z][A-Za-z0-9]*$ ]]; then
+            if [[ "${CIRCLE_BRANCH}" =~ ^release/.+$ ]]; then
               ./gradlew publishPlugins
             # snapshots
             elif [ "${CIRCLE_BRANCH}" == "master" ]; then
