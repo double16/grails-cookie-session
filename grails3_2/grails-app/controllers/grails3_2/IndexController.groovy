@@ -97,7 +97,7 @@ class IndexController {
 
     def storeLargeException() {
         try {
-            maxRecurseCount = 1900
+            maxRecurseCount = 1000
             recurse()
         }
         catch (excp) {
