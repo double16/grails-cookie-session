@@ -17,17 +17,9 @@
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
 
-package grails.plugin.cookiesession.page
+import grails.plugin.cookiesession.IndexPageTest
+import grails.testing.mixin.integration.Integration
 
-import geb.Page
-
-class LoginPage extends Page {
-    static url = '/auth/login'
-    static at = { title.trim() == 'Login' }
-    static content = {
-        username { $('#username') }
-        password { $('#password') }
-        rememberMe { $('#remeber_me') }
-        submit { $('#submit') }
-    }
+@Integration
+class IndexPage33Test extends IndexPageTest {
 }

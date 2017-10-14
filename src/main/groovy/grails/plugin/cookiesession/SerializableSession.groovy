@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -174,6 +172,9 @@ class SerializableSession implements HttpSession, Serializable {
     }
 
     void invalidate() {
+        if (isValid) {
+            dirty = true
+        }
         isValid = false
     }
 

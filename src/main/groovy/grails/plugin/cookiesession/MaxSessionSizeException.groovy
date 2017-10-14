@@ -20,6 +20,10 @@ package grails.plugin.cookiesession
 
 import groovy.transform.InheritConstructors
 
+/**
+ * Exception indicating the serialized session has exceeded the maximum configured value and will not be sent to the
+ * client.
+ */
 @InheritConstructors
 class MaxSessionSizeException extends IOException {
 }

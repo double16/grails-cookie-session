@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -120,7 +118,7 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
          */
 
         kryo.register(Arrays.asList('').getClass(), new ArraysAsListSerializer())
-        kryo.register(InvocationHandler.class, new JdkProxySerializer())
+        kryo.register(InvocationHandler, new JdkProxySerializer())
         UnmodifiableCollectionsSerializer.registerSerializers(kryo)
         SynchronizedCollectionsSerializer.registerSerializers(kryo)
         log.trace 'configured kryo\'s standard serializers'

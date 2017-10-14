@@ -16,18 +16,15 @@
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
-
 package grails.plugin.cookiesession.page
 
 import geb.Page
 
-class LoginPage extends Page {
-    static url = '/auth/login'
-    static at = { title.trim() == 'Login' }
+class AssignToFlash extends Page {
+    static url = '/index/assignToFlash'
+    static at = { title == 'AssignToSession' }
     static content = {
-        username { $('#username') }
-        password { $('#password') }
-        rememberMe { $('#remeber_me') }
-        submit { $('#submit') }
+        key(wait: true) { $('#key').text() }
+        val(wait: true) { $('#val').text() }
     }
 }

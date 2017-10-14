@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -102,6 +100,7 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
         sessionRepository.saveSession(session, this)
     }
 
+    @SuppressWarnings('UnnecessarySetter')
     @Override
     void setStatus(int sc) {
         log.trace('intercepting setStatus({}) to save session', sc)
@@ -124,6 +123,7 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
         super.flushBuffer()
     }
 
+    @SuppressWarnings('UnnecessaryGetter')
     @Override
     PrintWriter getWriter() throws IOException {
         log.trace('intercepting getWriter to save session')
@@ -131,6 +131,7 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
         super.getWriter()
     }
 
+    @SuppressWarnings('UnnecessaryGetter')
     @Override
     ServletOutputStream getOutputStream() throws IOException {
         log.trace('intercepting getOutputStream to save session')
