@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -374,11 +372,6 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     session.lastAccessedTime = System.currentTimeMillis()
                     session.servletContext = request.servletContext
                     session.dirty = false
-
-                    float currentPercentage = serializedSession.length() / (maxCookieSize * cookieCount)
-                    if (currentPercentage >= warnThreshold) {
-                        log.warn 'cookie approaching maximum size. maxCookieSize: {}, currentSize: {}, percent: {}', maxCookieSize * cookieCount, serializedSession.length(), Math.round(currentPercentage * 100)
-                    }
                 } else if (inactiveInterval > maxInactiveIntervalMillis) {
                     log.info 'retrieved expired session from cookie. lastAccessedTime: {}. expired by {} ms.', new Date(lastAccessedTime), inactiveInterval
                     session = null
@@ -401,6 +394,12 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         if (session.isValid) {
             String serializedSession = serializeSession(session)
+
+            float currentPercentage = serializedSession.length() / (maxCookieSize * cookieCount)
+            if (currentPercentage >= warnThreshold) {
+                log.warn 'cookie approaching maximum size. maxCookieSize: {}, currentSize: {}, percent: {}', maxCookieSize * cookieCount, serializedSession.length(), Math.round(currentPercentage * 100)
+            }
+
             putDataInCookie(response, serializedSession)
         } else {
             deleteCookie(response)

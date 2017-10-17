@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 import javax.servlet.ServletOutputStream
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponseWrapper
 
@@ -32,14 +33,14 @@ import javax.servlet.http.HttpServletResponseWrapper
 @Slf4j
 class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
     private final SessionRepository sessionRepository
-    private final SessionRepositoryRequestWrapper request
+    private final HttpServletRequest request
     private final boolean enforceSession
     private Collection<SessionPersistenceListener> sessionPersistenceListeners
     private boolean sessionSaved = false
 
     SessionRepositoryResponseWrapper(HttpServletResponse response,
                                      SessionRepository sessionRepository,
-                                     SessionRepositoryRequestWrapper request,
+                                     HttpServletRequest request,
                                      boolean enforceSession = false) {
         super(response)
         this.sessionRepository = sessionRepository
@@ -110,6 +111,7 @@ class SessionRepositoryResponseWrapper extends HttpServletResponseWrapper {
 
     @Override
     @SuppressWarnings('Deprecated')
+    @Deprecated
     void setStatus(int sc, String sm) {
         log.trace('intercepting setStatus({}, {}) to save session', sc, sm)
         this.saveSession()
