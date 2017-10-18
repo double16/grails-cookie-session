@@ -38,6 +38,7 @@ build/
 .idea/**/modules.xml
 .idea/**/vcs.xml
 .idea/**/libraries
+.idea/**/artifacts
 *.iml
 
 ## File-based project format:
