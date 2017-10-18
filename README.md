@@ -171,7 +171,6 @@ The following logback keys are configurable:
   *   grails.plugin.cookiesession.CookieSessionRepository
   *   grails.plugin.cookiesession.JavaSessionSerializer
   *   grails.plugin.cookiesession.KryoSessionSerializer
-  *   grails.plugin.cookiesession.KryoSessionSerializer
   *   grails.plugin.cookiesession.SecurityContextSessionPersistenceListener
   *   grails.plugin.cookiesession.SerializableSession
 

@@ -18,12 +18,28 @@
  */
 package grails.plugin.cookiesession
 
+import grails.config.Config
+import grails.core.GrailsApplication
+import org.grails.config.PropertySourcesConfig
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.security.web.PortResolver
+import org.springframework.security.web.savedrequest.DefaultSavedRequest
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import javax.servlet.http.Cookie
+
+@Unroll
 class SecurityContextSessionPersistenceListenerTest extends Specification {
+    static final String SPRING__SECURITY__CONTEXT = 'SPRING_SECURITY_CONTEXT'
+    static final List<String> SPRING_SECURITY_SAVED_REQUEST = [
+            'SPRING_SECURITY_SAVED_REQUEST_KEY', // needed for backwards compatibility
+            'SPRING_SECURITY_SAVED_REQUEST',
+    ]
+
     SecurityContextSessionPersistenceListener listener
 
     void setup() {
@@ -31,30 +47,147 @@ class SecurityContextSessionPersistenceListenerTest extends Specification {
         SecurityContextHolder.setContext(securityContext)
         listener = new SecurityContextSessionPersistenceListener()
         listener.securityContextHolder = SecurityContextHolder
-
     }
 
-    void "SavedRequest cookies are removed"() {
-        expect: false
+    void "afterPropertiesSet preserves default cookie name"() {
+        given:
+        Config config = new PropertySourcesConfig().merge(new ConfigSlurper('test').parse("""
+grails.plugin.cookiesession.enabled = true
+"""))
+        listener.grailsApplication = Stub(GrailsApplication)
+        listener.grailsApplication.config >> config
+        listener.grailsApplication.classLoader >> getClass().classLoader
+
+        when:
+        listener.afterPropertiesSet()
+
+        then:
+        !listener.cookiePattern.matcher('xsession-0').find()
+        !listener.cookiePattern.matcher('xsession-1').find()
+        and:
+        listener.cookiePattern.matcher('gsession-0').find()
+        listener.cookiePattern.matcher('gsession-1').find()
     }
 
-    void "SavedRequest cookies are removed from legacy key"() {
-        expect: false
+    void "afterPropertiesSet accepts custom cookie name"() {
+        given:
+        Config config = new PropertySourcesConfig().merge(new ConfigSlurper('test').parse("""
+grails.plugin.cookiesession.enabled = true
+grails.plugin.cookiesession.cookiename = 'xsession'
+"""))
+        listener.grailsApplication = Stub(GrailsApplication)
+        listener.grailsApplication.config >> config
+        listener.grailsApplication.classLoader >> getClass().classLoader
 
+        when:
+        listener.afterPropertiesSet()
+
+        then:
+        listener.cookiePattern.matcher('xsession-0').find()
+        listener.cookiePattern.matcher('xsession-1').find()
+        and:
+        !listener.cookiePattern.matcher('gsession-0').find()
+        !listener.cookiePattern.matcher('gsession-1').find()
+    }
+
+    void "afterSessionRestored does not fail"() {
+        when:
+        listener.afterSessionRestored(new SerializableSession())
+        then:
+        notThrown(Exception)
+    }
+
+    void "SavedRequest cookies are removed from #key"() {
+        given:
+        MockHttpServletRequest request = new MockHttpServletRequest()
+        request.setCookies(
+                new Cookie('gsession-0', 'abc'),
+                new Cookie('gsession-1', 'def'),
+                new Cookie('JSESSIONID', 'jsessionid-abcdef'),
+                new Cookie('state', 'nebraska'),
+        )
+        request.addHeader('cookie', 'gsession-0=abc; gsession-1=def; state=nebraska')
+        request.addHeader('accept', '*/*')
+        DefaultSavedRequest sr = new DefaultSavedRequest(request, Mock(PortResolver))
+        SerializableSession session = new SerializableSession()
+        session.setAttribute(key, sr)
+        session.dirty = false
+
+        when:
+        listener.beforeSessionSaved(session)
+
+        then:
+        sr.getCookies()*.name.sort() == ['JSESSIONID', 'state']
+        sr.headerNames.sort() == ['accept'] as Set
+        session.dirty
+
+        where:
+        key << SPRING_SECURITY_SAVED_REQUEST
+    }
+
+    void "Session is clean if no SavedRequest cookies are removed from #key"() {
+        given:
+        MockHttpServletRequest request = new MockHttpServletRequest()
+        request.setCookies(
+                new Cookie('JSESSIONID', 'jsessionid-abcdef'),
+                new Cookie('state', 'nebraska'),
+        )
+        request.addHeader('accept', '*/*')
+        DefaultSavedRequest sr = new DefaultSavedRequest(request, Mock(PortResolver))
+        SerializableSession session = new SerializableSession()
+        session.setAttribute(key, sr)
+        session.dirty = false
+
+        when:
+        listener.beforeSessionSaved(session)
+
+        then:
+        sr.getCookies()*.name.sort() == ['JSESSIONID', 'state']
+        sr.headerNames.sort() == ['accept'] as Set
+        !session.dirty
+
+        where:
+        key << SPRING_SECURITY_SAVED_REQUEST
     }
 
     void "SPRING_SECURITY_CONTEXT is skipped if not present"() {
-        expect: false
+        given:
+        SerializableSession session = new SerializableSession()
+        session.dirty = false
 
+        when:
+        listener.beforeSessionSaved(session)
+        !session.dirty
+
+        then:
+        session.getAttribute(SPRING__SECURITY__CONTEXT) == null
     }
 
     void "SPRING_SECURITY_CONTEXT is replaced if different"() {
-        expect: false
+        given:
+        SerializableSession session = new SerializableSession()
+        session.setAttribute(SPRING__SECURITY__CONTEXT, new SecurityContextImpl())
+        session.dirty = false
 
+        when:
+        listener.beforeSessionSaved(session)
+        session.dirty
+
+        then:
+        session.getAttribute(SPRING__SECURITY__CONTEXT) == SecurityContextHolder.getContext()
     }
 
     void "SPRING_SECURITY_CONTEXT is not replaced if already the correct instance"() {
-        expect: false
+        given:
+        SerializableSession session = new SerializableSession()
+        session.setAttribute(SPRING__SECURITY__CONTEXT, SecurityContextHolder.getContext())
+        session.dirty = false
 
+        when:
+        listener.beforeSessionSaved(session)
+        !session.dirty
+
+        then:
+        session.getAttribute(SPRING__SECURITY__CONTEXT) == SecurityContextHolder.getContext()
     }
 }

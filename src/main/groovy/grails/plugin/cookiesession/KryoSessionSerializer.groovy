@@ -58,7 +58,7 @@ import java.lang.reflect.InvocationHandler
 @Slf4j
 class KryoSessionSerializer implements SessionSerializer, InitializingBean {
     GrailsApplication grailsApplication
-    KryoPool kryoPool
+    KryoPool kryoPool = new KryoPool.Builder({ getConfiguredKryoSerializer() } as KryoFactory).softReferences().build()
 
     boolean springSecurityCompatibility = false
     String springSecurityPluginVersion
@@ -77,8 +77,6 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
         if (springSecurityCompatibility) {
             log.trace 'Kryo serializer detected spring security plugin version: {}', springSecurityPluginVersion
         }
-
-        kryoPool = new KryoPool.Builder({ getConfiguredKryoSerializer() } as KryoFactory).softReferences().build()
     }
 
     void serialize(SerializableSession session, OutputStream outputStream) {

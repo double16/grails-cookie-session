@@ -66,7 +66,7 @@ class SerializableSession implements HttpSession, Serializable {
     private static final long serialVersionUID = 42L
     private final long creationTime
     long lastAccessedTime = 0
-    private Map<String, Serializable> attributes = [:]
+    private final Map<String, Serializable> attributes = [:]
 
     transient boolean isValid
     transient boolean dirty
@@ -113,14 +113,14 @@ class SerializableSession implements HttpSession, Serializable {
     }
 
     Enumeration getAttributeNames() {
-        final Iterator<String> keys = attributes.keySet().iterator()
-        final Enumeration names = new Enumeration() {
-            boolean hasMoreElements() { return keys.hasNext() }
+        final Iterator<String> KEYS = attributes.keySet().iterator()
+        final Enumeration NAMES = new Enumeration() {
+            boolean hasMoreElements() { return KEYS.hasNext() }
 
-            Object nextElement() { return keys.next() }
+            Object nextElement() { return KEYS.next() }
         }
 
-        names
+        NAMES
     }
 
     String[] getValueNames() {

@@ -55,6 +55,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     public static final String DEFAULT_CRYPTO_ALGORITHM = 'Blowfish'
     public static final String SERVLET_CONTEXT_BEAN = 'servletContext'
     private static final float DEFAULT_WARN_THRESHOLD = 0.8f
+    private static final String CRYPTO_SEPARATOR = '/'
 
     GrailsApplication grailsApplication
     ApplicationContext applicationContext
@@ -94,12 +95,13 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         assignSettingFromConfig('useSessionCookieConfig', false, Boolean, 'useSessionCookieConfig')
         if (useSessionCookieConfig) {
+            if (servletContext == null) {
+                useSessionCookieConfig = false
+                log.warn 'useSessionCookieConfig was enabled in the config file, but has been disabled because the servlet context is not available.'
+            }
 
             if (servletContext?.majorVersion < 3) {
                 useSessionCookieConfig = false
-            }
-
-            if (!useSessionCookieConfig) {
                 log.warn 'useSessionCookieConfig was enabled in the config file, but has been disabled because the servlet does not support SessionCookieConfig.'
             }
         }
@@ -132,13 +134,13 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             serializer = 'javaSessionSerializer'
         } else if (serializer == 'kryo') {
             serializer = 'kryoSessionSerializer'
-        } else if (!(applicationContext.containsBean(serializer) && applicationContext.getType(serializer) instanceof SessionSerializer)) {
+        } else if (!(applicationContext.containsBean(serializer) && SessionSerializer.isAssignableFrom(applicationContext.getType(serializer)))) {
             log.error 'no valid serializer configured. defaulting to java'
             serializer = 'javaSessionSerializer'
         }
 
         assignSettingFromConfig('maxcookiesize', 2048, Integer, 'maxCookieSize')
-        if (maxCookieSize < 1024 && maxCookieSize > 4096) {
+        if (maxCookieSize < 1024 || maxCookieSize > 4096) {
             maxCookieSize = 2048
             log.info 'grails.plugin.cookiesession.maxCookieSize must be between 1024 and 4096. defaulting to 2048'
         } else {
@@ -152,7 +154,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         assignSettingFromConfig('cookiename', 'gsession', String, 'cookieName')
         assignSettingFromConfig('setsecure', false, Boolean, 'secure')
         assignSettingFromConfig('httponly', false, Boolean, 'httpOnly')
-        assignSettingFromConfig('path', '/', String, 'path')
+        assignSettingFromConfig('path', CRYPTO_SEPARATOR, String, 'path')
         assignSettingFromConfig('domain', null, String, 'domain')
         assignSettingFromConfig('comment', null, String, 'comment')
         assignSettingFromConfig('sessiontimeout', -1, Long, 'maxInactiveInterval')
@@ -166,8 +168,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             this.domain = servletContext.sessionCookieConfig.domain ?: domain
             this.comment = servletContext.sessionCookieConfig.comment ?: comment
             this.maxInactiveInterval = servletContext.sessionCookieConfig.maxAge ?: maxInactiveInterval
-            this.warnThreshold = servletContext.sessionCookieConfig.warnThreshold ?: warnThreshold
-            log.trace "processed sessionCookieConfig. cookie settings are: [name: ${cookieName}, httpOnly: ${httpOnly}, secure: ${secure}, path: ${path}, domain: ${domain}, comment: ${comment}, maxAge: ${maxInactiveInterval}, warnThreshold: ${warnThreshold}]"
+            log.trace "processed sessionCookieConfig. cookie settings are: [name: ${cookieName}, httpOnly: ${httpOnly}, secure: ${secure}, path: ${path}, domain: ${domain}, comment: ${comment}, maxAge: ${maxInactiveInterval}]"
         }
 
         if (grailsApplication.config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility')) {
@@ -178,21 +179,22 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         warnForDeprecatedConfig()
 
+        final String CIPHER = cryptoAlgorithm.split(CRYPTO_SEPARATOR)[0]
+        final String CIPHER_MODE = cryptoAlgorithm.indexOf(CRYPTO_SEPARATOR) < 0 ? null : cryptoAlgorithm.split(CRYPTO_SEPARATOR)[1].toUpperCase()
+
         // initialize the crypto key
         if (cryptoSecret == null) {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(cryptoAlgorithm.split('/')[0])
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(CIPHER)
             SecureRandom secureRandom = new SecureRandom()
             keyGenerator.init(secureRandom)
             cryptoKey = keyGenerator.generateKey()
         } else {
-            cryptoKey = new SecretKeySpec(cryptoSecret, cryptoAlgorithm.split('/')[0])
+            cryptoKey = new SecretKeySpec(cryptoSecret, CIPHER)
         }
 
-        // determine if an initialization vector is needed
-        useInitializationVector = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() != 'ECB'
-        useGCMmode = cryptoAlgorithm.indexOf('/') < 0 ? false : cryptoAlgorithm.split('/')[1].toUpperCase() == 'GCM'
+        useInitializationVector = (CIPHER_MODE && CIPHER_MODE != 'ECB')
+        useGCMmode = (CIPHER_MODE == 'GCM')
 
-        // check to see if spring security's sessionfixationprevention is turned on
         if (grailsApplication.config.grails.plugin.springsecurity.useSessionFixationPrevention == true) {
             log.error 'grails.plugin.springsecurity.useSessionFixationPrevention == true. Spring Security Session Fixation Prevention is incompatible with cookie session plugin. Your application will experience unexpected behavior.'
         }
@@ -266,9 +268,6 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                 case 'setMaxAge':
                     this.maxInactiveInterval = args[0] as long
                     break
-                case 'setWarnThreshold':
-                    this.warnThreshold = args[0] as long
-                    break
             }
 
             servletContext.sessionCookieConfig.metaClass.methods.find {
@@ -299,9 +298,6 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     break
                 case 'maxAge':
                     this.maxInactiveInterval = value
-                    break
-                case 'warnThreshold':
-                    this.warnThreshold = value
                     break
             }
 
@@ -372,7 +368,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     session.lastAccessedTime = System.currentTimeMillis()
                     session.servletContext = request.servletContext
                     session.dirty = false
-                } else if (inactiveInterval > maxInactiveIntervalMillis) {
+                } else {
                     log.info 'retrieved expired session from cookie. lastAccessedTime: {}. expired by {} ms.', new Date(lastAccessedTime), inactiveInterval
                     session = null
                 }
@@ -540,7 +536,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     String getDataFromCookie(HttpServletRequest request) {
         log.trace 'getDataFromCookie()'
 
-        Collection<String> values = request.cookies.findAll {
+        Collection<String> values = request.cookies?.findAll {
             it.name.startsWith(cookieName)
         }?.sort {
             it.name.split('-')[1].toInteger()
