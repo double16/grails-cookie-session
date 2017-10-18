@@ -1,0 +1,23 @@
+
+def repo = 'http://192.168.1.254:9081/content/groups/public/'
+
+try {
+
+  // if we disable the Nexus repo when running in offline mode, the dependencies cached from
+  // Nexus will not be found because the cache includes the repo from which they were cached.
+  if (!startParameter.offline) {
+    def connection = new URL(repo).openConnection()
+    connection.connectTimeout = 10000
+    connection.connect()
+  }
+
+  allprojects {
+    ext.RepoConfigurator = {
+      maven { url = uri(repo) }
+    }
+    buildscript.repositories RepoConfigurator
+    repositories RepoConfigurator
+  }
+
+} catch (e) { System.err.println "Nexus proxy ${repo} is not available" }
+

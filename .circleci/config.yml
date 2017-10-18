@@ -1,0 +1,142 @@
+version: 2
+jobs:
+  build:
+    working_directory: /home/circleci/grails-cookie-session
+    docker:
+      - image: circleci/openjdk:8u141-jdk
+    environment:
+      - BASH_ENV: /home/circleci/grails-cookie-session/local.env
+      - TERM: dumb
+      - GRADLE_OPTS: '-Xmx768m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
+      - GRADLE_USER_HOME: /home/circleci/.gradle
+      # BINTRAY_USER, BINTRAY_KEY
+
+    steps:
+      - checkout
+
+      - run:
+          name: Configure Gradle Memory
+          command: |
+            mkdir -p ${GRADLE_USER_HOME}
+            echo "org.gradle.jvmargs=-Xmx768m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap" > ${GRADLE_USER_HOME}/gradle.properties
+            echo "org.gradle.daemon=false" >> ${GRADLE_USER_HOME}/gradle.properties
+            echo "org.gradle.workers.max=2" >> ${GRADLE_USER_HOME}/gradle.properties
+
+      - run:
+          name: Configure Artifact Cache
+          command: |
+            set -x
+            if curl -s -f --connect-timeout=10 http://192.168.1.254:9081/service/local/status; then
+              mkdir -p ${GRADLE_USER_HOME}
+              cp -v /home/circleci/grails-cookie-session/.circleci/init.gradle ${GRADLE_USER_HOME}/init.gradle
+              mkdir -p /home/circleci/grails-cookie-session/.gradle/circleci
+              mkdir -p /home/circleci/.m2/
+              cp -v /home/circleci/grails-cookie-session/.circleci/settings.xml /home/circleci/.m2/settings.xml
+            fi
+
+      - restore_cache:
+          keys:
+            - v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum "test-common-spock10/build.gradle" }}-{{ checksum "test-common-spock11/build.gradle" }}-{{ checksum "grails3_0/build.gradle" }}-{{ checksum "grails3_1/build.gradle" }}-{{ checksum "grails3_2/build.gradle" }}-{{ checksum "grails3_3/build.gradle" }}
+            - v1-code-{{ .Branch }}-
+            - v1-code-
+
+      - run:
+          name: Unit Test and Publish to Local
+          command: |
+            ./gradlew -s --continue check cloverGenerateReport publishToMavenLocal
+
+      - run:
+          name: Unit Test Grails Versions 3.0
+          command: |
+            ./grails3_0/gradlew -s -p grails3_0 test
+
+      - run:
+          name: Unit Test Grails Versions 3.1
+          command: |
+            ./grails3_1/gradlew -s -p grails3_1 test
+
+      - run:
+          name: Unit Test Grails Versions 3.2
+          command: |
+            ./grails3_2/gradlew -s -p grails3_2 test
+
+      - run:
+          name: Unit Test Grails Versions 3.3
+          command: |
+            ./grails3_3/gradlew -s -p grails3_3 test
+
+      - run:
+          name: Integration Test Grails Versions 3.0
+          command: |
+            ./grails3_0/gradlew -s -p grails3_0 integrationTest
+
+      - run:
+          name: Integration Test Grails Versions 3.1
+          command: |
+            ./grails3_1/gradlew -s -p grails3_1 integrationTest
+
+      - run:
+          name: Integration Test Grails Versions 3.2
+          command: |
+            ./grails3_2/gradlew -s -p grails3_2 integrationTest
+
+      - run:
+          name: Integration Test Grails Versions 3.3
+          command: |
+            ./grails3_3/gradlew -s -p grails3_3 integrationTest
+
+      - save_cache:
+          key: v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum "test-common-spock10/build.gradle" }}-{{ checksum "test-common-spock11/build.gradle" }}-{{ checksum "grails3_0/build.gradle" }}-{{ checksum "grails3_1/build.gradle" }}-{{ checksum "grails3_2/build.gradle" }}-{{ checksum "grails3_3/build.gradle" }}
+          paths:
+            - /home/circleci/.gradle/native
+            - /home/circleci/.gradle/caches
+            - /home/circleci/.gradle/nodejs
+            - /home/circleci/.gradle/wrapper
+
+      - store_test_results:
+          path: ./build/test-results
+      - store_test_results:
+          path: ./grails3_0/build/test-results
+      - store_test_results:
+          path: ./grails3_1/build/test-results
+      - store_test_results:
+          path: ./grails3_2/build/test-results
+      - store_test_results:
+          path: ./grails3_3/build/test-results
+
+      - store_artifacts:
+          path: ./build/reports
+          destination: tests
+      - store_artifacts:
+          path: ./grails3_0/build/reports
+          destination: grails-3.0
+      - store_artifacts:
+          path: ./grails3_1/build/reports
+          destination: grails-3.1
+      - store_artifacts:
+          path: ./grails3_2/build/reports
+          destination: grails-3.2
+      - store_artifacts:
+          path: ./grails3_3/build/reports
+          destination: grails-3.3
+      - store_artifacts:
+          path: ./build/reports/clover
+          destination: code_coverage
+      - store_artifacts:
+          path: ./build/reports/codenarc
+          destination: codenarc
+
+      - deploy:
+          name: Publish Plugin
+          command: |
+            set -x
+            # release versions
+            if [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*$ ]]; then
+              ./gradlew publishPlugins
+            # pre-release versions
+            elif [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*[.][A-Za-z][A-Za-z0-9]*$ ]]; then
+              ./gradlew publishPlugins
+            # snapshots
+            elif [ "${CIRCLE_BRANCH}" == "master" ]; then
+              ./gradlew -s publishPlugin
+            fi

@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,52 +15,50 @@
  *
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
+ *  Patrick Double
+ *  patrick.double@objectpartners.com or pat@patdouble.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
+import grails.core.GrailsApplication
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-import grails.core.DefaultGrailsApplication
-import java.io.ByteArrayOutputStream;
+/**
+ * Session serializer using serialization built-in to the JDK. This method is the most compatible but
+ * is also slow and produces large results.
+ */
+@CompileStatic
+@Slf4j
+class JavaSessionSerializer implements SessionSerializer {
+    GrailsApplication grailsApplication
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-class JavaSessionSerializer implements SessionSerializer{
-
-  final static Logger log = LoggerFactory.getLogger(JavaSessionSerializer.class.getName());
-
-  DefaultGrailsApplication grailsApplication
-
-  public byte[] serialize(SerializableSession session){
-    log.trace "serializeSession()"
-    ByteArrayOutputStream stream = new ByteArrayOutputStream()
-    def output = new ObjectOutputStream(stream)
-    output.writeObject(session)
-    output.close()
-    byte[] bytes = stream.toByteArray() 
-    log.trace "serialized session. ${bytes.size()} bytes."
-    return bytes
-  }
-
-  public SerializableSession deserialize(byte[] serializedSession){
-
-    log.trace "deserializeSession()"
-
-    def inputStream = new ObjectInputStream(new ByteArrayInputStream( serializedSession )){
-      @Override
-      public Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-        //noinspection GroovyUnusedCatchParameter
-        try {
-          return grailsApplication.classLoader.loadClass(desc.getName())
-        } catch (ClassNotFoundException ex) {
-          return Class.forName(desc.getName())
-        }
-      }
+    void serialize(SerializableSession session, OutputStream outputStream) {
+        log.trace 'serializeSession()'
+        ObjectOutputStream output = new ObjectOutputStream(outputStream)
+        output.writeObject(session)
+        output.close()
     }
 
-    SerializableSession session = (SerializableSession)inputStream.readObject();
-    
-    log.trace "deserialized session."
-    return session
-  }
+    SerializableSession deserialize(InputStream serializedSession) {
+
+        log.trace 'deserializeSession()'
+
+        ObjectInputStream inputStream = new ObjectInputStream(serializedSession) {
+            @Override
+            Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+                //noinspection GroovyUnusedCatchParameter
+                try {
+                    return grailsApplication.classLoader.loadClass(desc.name)
+                } catch (ClassNotFoundException ex) {
+                    return Class.forName(desc.name)
+                }
+            }
+        }
+
+        SerializableSession session = (SerializableSession) inputStream.readObject()
+
+        log.trace 'deserialized session.'
+        return session
+    }
 }
