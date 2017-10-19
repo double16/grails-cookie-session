@@ -1,113 +1,100 @@
+/*
+ * Copyright 2012-2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *  Patrick Double
+ *  patrick.double@objectpartners.com or pat@patdouble.com
+ */
 package grails.plugin.cookiesession
 
-import grails.plugins.*
-import org.springframework.boot.context.embedded.FilterRegistrationBean
+import grails.plugins.Plugin
 import org.springframework.core.Ordered
-import org.springframework.web.filter.DelegatingFilterProxy
 
+/**
+ * Grails plugin implementation for cookie-session.
+ */
 class CookiesessionGrailsPlugin extends Plugin {
 
-    //def version = "3.0"
-
-    // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.0.0 > *"
+    def grailsVersion = '3.0.0 > *'
 
     def loadAfter = ['controllers']
 
-    // resources that are excluded from plugin packaging
-    def pluginExcludes = [
-        "grails-app/views/error.gsp"
-    ]
-
-    // TODO Fill in these fields
-    def title = "Cookie Session Plugin" // Headline display name of the plugin
-    def author = "Ben Lucchesi"
-    def authorEmail = "benlucchesi@gmail.com"
-    def description = '''\
-The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server. This allows application deployments to be more stateless which supports simplified scaling architectures and fault tolerance." 
-    def documentation = "http://github.com/benlucchesi/grails-cookie-session-v2
-'''
+    def title = 'Cookie Session Plugin'
+    def author = 'Patrick Double'
+    def authorEmail = 'pat@patdouble.com'
+    def description = '''
+The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server. This allows application deployments to be more stateless which supports simplified scaling architectures and fault tolerance.'''
     def profiles = ['web']
 
-    // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/cookiesession"
+    def documentation = 'https://github.com/double16/grails-cookie-session'
 
-    // Extra (optional) plugin metadata
+    def license = 'APACHE'
 
-    // License: one of 'APACHE', 'GPL2', 'GPL3'
-    def license = "APACHE"
+    def developers = [[name: 'Ben Lucchesi', email: 'benlucchesi@gmail.com']]
 
-    // Details of company behind the plugin (if there is one)
-    def organization = [ name: "Accuracy Software, LTD", url: "http://www.benlucchesi.com/" ]
+    def issueManagement = [system: 'GitHub', url: 'https://github.com/double16/grails-cookie-session/issues']
 
-    // Any additional developers beyond the author specified above.
-//    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
+    def scm = [url: 'https://github.com/double16/grails-cookie-session.git']
 
-    // Location of the plugin's issue tracker.
-//    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
+    Closure doWithSpring() {
+        { ->
 
-    // Online location of the plugin's browseable source code.
-    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
+            if (!config.grails.plugin.cookiesession.enabled) {
+                return
+            }
 
-    Closure doWithSpring() { {->
+            sessionRepository(CookieSessionRepository) { bean ->
+                bean.autowire = 'byName'
+            }
 
-        if ( !config.grails.plugin.cookiesession.enabled ) {
-            return
+            if (config.grails.plugin.cookiesession.containsKey('condenseexceptions')
+                    && config.grails.plugin.cookiesession['condenseexceptions'] == true) {
+                exceptionCondenser(ExceptionCondenser)
+            }
+
+            // ALWAYS CONFIGURED!
+            javaSessionSerializer(JavaSessionSerializer) { bean ->
+                bean.autowire = 'byName'
+            }
+
+            if (config.grails.plugin.cookiesession.containsKey('serializer')
+                    && config.grails.plugin.cookiesession['serializer'] == 'kryo') {
+                kryoSessionSerializer(KryoSessionSerializer) { bean ->
+                    bean.autowire = 'byName'
+                }
+            }
+
+            if (config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility')
+                    && config.grails.plugin.cookiesession['springsecuritycompatibility'] == true) {
+                securityContextSessionPersistenceListener(SecurityContextSessionPersistenceListener) { bean ->
+                    bean.autowire = 'byName'
+                }
+            }
+
+            Class filterRegistrationBeanClass
+            try {
+                filterRegistrationBeanClass = Class.forName('org.springframework.boot.web.servlet.FilterRegistrationBean')
+            } catch (ClassNotFoundException e) {
+                filterRegistrationBeanClass = Class.forName('org.springframework.boot.context.embedded.FilterRegistrationBean')
+            }
+            cookieSessionFilter(filterRegistrationBeanClass) {
+                filter = bean(CookieSessionFilter) {
+                    sessionRepository = ref('sessionRepository')
+                }
+                order = Ordered.HIGHEST_PRECEDENCE + 25
+            }
+
         }
-
-        sessionRepository(CookieSessionRepository){ bean ->
-          bean.autowire = 'byName'
-        }
-
-        if( config.grails.plugin.cookiesession.containsKey("condenseexceptions") && 
-            config.grails.plugin.cookiesession["condenseexceptions"] == true ) 
-          exceptionCondenser(ExceptionCondenser)
-
-        // ALWAYS CONFIGURED!
-        javaSessionSerializer(JavaSessionSerializer){ bean ->
-          bean.autowire = 'byName'
-        }
-
-        if( config.grails.plugin.cookiesession.containsKey("serializer") && config.grails.plugin.cookiesession["serializer"] == "kryo" )
-          kryoSessionSerializer(KryoSessionSerializer){ bean ->
-            bean.autowire = 'byName'
-          }
-
-        if( config.grails.plugin.cookiesession.containsKey("springsecuritycompatibility") &&  config.grails.plugin.cookiesession["springsecuritycompatibility"] == true )
-          securityContextSessionPersistenceListener(SecurityContextSessionPersistenceListener){ bean ->
-            bean.autowire = 'byName'
-          }
-
-        cookieSessionFilter(FilterRegistrationBean){
-          filter = bean(CookieSessionFilter){
-            sessionRepository = ref("sessionRepository") 
-          }
-          order = Ordered.HIGHEST_PRECEDENCE + 25
-        }
-
-      }
-    }
-
-    void doWithDynamicMethods() {
-        // TODO Implement registering dynamic methods to classes (optional)
-    }
-
-    void doWithApplicationContext() {
-        // TODO Implement post initialization spring config (optional)
-    }
-
-    void onChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
-    }
-
-    void onConfigChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when the project configuration changes.
-        // The event is the same as for 'onChange'.
-    }
-
-    void onShutdown(Map<String, Object> event) {
-        // TODO Implement code that is executed when the application shuts down (optional)
     }
 }

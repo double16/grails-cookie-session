@@ -1,1 +1,4 @@
 rootProject.name = 'cookie-session'
+
+include 'test-common-spock10'
+include 'test-common-spock11'

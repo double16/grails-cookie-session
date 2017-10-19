@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,22 @@
  *
  *  Ben Lucchesi
  *  benlucchesi@gmail.com
+ *  Patrick Double
+ *  patrick.double@objectpartners.com or pat@patdouble.com
  */
+package grails.plugin.cookiesession
 
-package grails.plugin.cookiesession;
+/**
+ * Interface for objects that can serialize an HttpSession into an OutputStream and deserialize from
+ * an InputStream. It is expected that given an implementation of this interface can deserialize sessions
+ * across JVM invocations assuming any configuration remains the same. It is not expected that differing
+ * implementations can deserialize each other's sessions.
+ *
+ * Do not compress, encrypt or encode the serialized data. These functions will be done by the caller.
+ */
+interface SessionSerializer {
 
-public interface SessionSerializer{
+    void serialize(SerializableSession session, OutputStream outputStream)
 
-  public byte[] serialize(SerializableSession session);
-  public SerializableSession deserialize(byte[] serializedSession);
+    SerializableSession deserialize(InputStream serializedSession)
 }

@@ -1,0 +1,40 @@
+plugins {
+    id 'groovy'
+    id 'maven-publish'
+}
+
+ext {
+    grailsVersion = rootProject.grailsVersion
+    gebVersion = '1.1.1'
+}
+
+group 'org.grails.plugins.cookie-session'
+version rootProject.version
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven { url "https://repo.grails.org/grails/core" }
+}
+
+dependencies {
+    compile "org.codehaus.groovy:groovy-all:2.4.10"
+    compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+    compile project(path: ':', configuration: 'archives')
+    compile project(path: ':', configuration: 'default')
+    compile "org.grails:grails-dependencies:${grailsVersion}"
+    compile "org.grails:grails-web-boot:${grailsVersion}"
+    compile "org.grails:grails-plugin-testing:${grailsVersion}"
+    compile "org.gebish:geb-core:${gebVersion}"
+    compile "org.gebish:geb-spock:${gebVersion}"
+    compile "org.grails.plugins:geb:1.0.1"
+    compile "org.spockframework:spock-core:1.1-groovy-2.4"
+    compile "org.spockframework:spock-spring:1.1-groovy-2.4"
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
