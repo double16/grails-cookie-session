@@ -33,6 +33,7 @@ import grails.plugin.cookiesession.page.SessionExists
 import grails.plugin.cookiesession.page.StoreLargeException
 import grails.plugin.cookiesession.page.WhoAmI
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
 class IndexPageTest extends GebSpec {
 
@@ -105,6 +106,7 @@ class IndexPageTest extends GebSpec {
         $("#firstname").text() == "benjamin"
     }
 
+    @IgnoreIf({System.getenv('COOKIE_SESSION_ENABLED') == 'false' })
     def "the cookie session should expire when the max inactive interval is exceeded"() {
         given:
         go "/index/configureSessionRepository?maxInactiveInterval=10"
@@ -175,6 +177,7 @@ class IndexPageTest extends GebSpec {
         flashMessage == "this is a flash message"
     }
 
+    @IgnoreIf({System.getenv('COOKIE_SESSION_ENABLED') == 'false' })
     def "exceptions should only be stored as strings"() {
         when:
         to StoreLargeException

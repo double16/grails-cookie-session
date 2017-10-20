@@ -79,3 +79,14 @@ dependencies {
 task wrapper(type: Wrapper) {
     gradleVersion = gradleWrapperVersion
 }
+
+task integrationTestDisabled(type: Test) {
+    group = 'verification'
+    description = 'Integration test with cookie session disabled'
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    reports.html.enabled = true
+    systemProperty 'grails.env', 'test'
+    environment('COOKIE_SESSION_ENABLED', 'false')
+}
+check.dependsOn integrationTestDisabled

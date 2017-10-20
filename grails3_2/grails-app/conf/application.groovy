@@ -1,7 +1,6 @@
 
-grails.plugin.cookiesession.enabled = true
+grails.plugin.cookiesession.enabled = Boolean.valueOf((System.getenv('COOKIE_SESSION_ENABLED') ?: 'true'))
 grails.plugin.cookiesession.encryptcookie = true
-grails.plugin.cookiesession.cryptoalgorithm = "Blowfish"
 grails.plugin.cookiesession.condenseexceptions = true
 grails.plugin.cookiesession.cookiecount = 5
 grails.plugin.cookiesession.maxcookiesize = 2048
