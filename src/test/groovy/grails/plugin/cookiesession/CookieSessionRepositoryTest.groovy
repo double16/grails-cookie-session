@@ -273,7 +273,7 @@ grails.plugin.cookiesession.comment = '${comment}'
         sessionRepository.saveSession(session, response)
 
         then:
-        response.cookies.size() > 0
+        response.cookies.size() > 1
         response.cookies*.secure.unique() == [setsecure]
         response.cookies*.httpOnly.unique() == [httponly]
         response.cookies*.path.unique() == [path]
