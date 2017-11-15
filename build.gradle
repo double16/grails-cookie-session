@@ -170,8 +170,9 @@ task testAll(group: 'verification') {
 
 task integrationTestAll(group: 'verification') {
     dependsOn publishToMavenLocal
-    dependsOn(versions.collect {
-        createGrailsModuleTask(it, 'integrationTest')
-        createGrailsModuleTask(it, 'integrationTestDisabled')
-    })
+    dependsOn(versions.collect { [
+        createGrailsModuleTask(it, 'integrationTest'),
+        createGrailsModuleTask(it, 'integrationTestDisabled'),
+        createGrailsModuleTask(it, 'integrationTestSSL'),
+    ]}.flatten())
 }

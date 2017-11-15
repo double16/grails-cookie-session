@@ -127,4 +127,5 @@ task integrationTestSSL(type: Test) {
     systemProperty 'server.ssl.key-password', 'tomcat'
 }
 
-check.dependsOn integrationTestDisabled
+check.dependsOn integrationTestDisabled, integrationTestSSL
+mergeTestReports.dependsOn integrationTestDisabled, integrationTestSSL

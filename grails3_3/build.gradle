@@ -129,3 +129,4 @@ task integrationTestSSL(type: Test) {
 }
 
 check.dependsOn integrationTestDisabled, integrationTestSSL
+mergeTestReports.dependsOn integrationTestDisabled, integrationTestSSL
