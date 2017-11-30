@@ -67,10 +67,10 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
         log.trace 'bean properties set, performing bean configuring bean'
 
         if (grailsApplication.config.grails.plugin.cookiesession.containsKey('springsecuritycompatibility')) {
-            springSecurityCompatibility = grailsApplication.config.grails.plugin.cookiesession['springsecuritycompatibility'] ? true : false
             springSecurityPluginVersion = grailsApplication.mainContext.getBean('pluginManager').allPlugins.find {
                 it.name == 'springSecurityCore'
             }?.version
+            springSecurityCompatibility = (grailsApplication.config.grails.plugin.cookiesession['springsecuritycompatibility'] && springSecurityPluginVersion)
         }
 
         log.trace 'Kryo serializer configured for spring security compatibility: {}', springSecurityCompatibility

@@ -9,12 +9,19 @@ import org.grails.plugins.MockGrailsPluginManager
 class MockCookieSessionPluginManager extends MockGrailsPluginManager {
     @Override
     void loadPlugins() throws PluginException {
-        registerMockPlugin([
-                getVersion: {'3.1.0'},
-                getName: { 'springSecurityCore' },
-                name: 'springSecurityCore',
-                setApplicationContext: { },
-        ] as GrailsPlugin)
+        try {
+            getClass().classLoader.loadClass('org.springframework.security.authentication.UsernamePasswordAuthenticationToken')
+
+            registerMockPlugin([
+                    getVersion: {'3.1.0'},
+                    getName: { 'springSecurityCore' },
+                    name: 'springSecurityCore',
+                    setApplicationContext: { },
+            ] as GrailsPlugin)
+
+        } catch (ClassNotFoundException e) {
+            // this is ok if we're not testing with spring-security
+        }
         super.loadPlugins()
     }
 }

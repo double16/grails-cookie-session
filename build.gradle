@@ -127,6 +127,21 @@ bintray {
     }
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            pom.withXml {
+            Node pomNode = asNode()
+            pomNode.dependencies.'*'.findAll() {
+                it.artifactId.text() in ['spring-security-core', 'javax.servlet-api']
+            }.each() {
+                it.parent().remove(it)
+            }
+            }
+        }
+    }
+}
+
 quality {
     codenarc = true
     checkstyle = false
@@ -160,7 +175,12 @@ Task createGrailsModuleTask(String version, String taskName) {
     }
 }
 
-List<String> versions = ['3_0', '3_1', '3_2', '3_3']
+List<String> versions = [
+    '3_0', '3_0_nosec',
+    '3_1', '3_1_nosec',
+    '3_2', '3_2_nosec',
+    '3_3', '3_3_nosec',
+]
 
 task testAll(group: 'verification') {
     dependsOn test
@@ -175,4 +195,10 @@ task integrationTestAll(group: 'verification') {
         createGrailsModuleTask(it, 'integrationTestDisabled'),
         createGrailsModuleTask(it, 'integrationTestSSL'),
     ]}.flatten())
+}
+
+task cleanAll(group: 'build') {
+    dependsOn test
+    dependsOn publishToMavenLocal
+    dependsOn(versions.collect { createGrailsModuleTask(it, 'clean') })
 }

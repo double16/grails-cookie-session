@@ -46,9 +46,9 @@ build/
 ## File-based project format:
 *.iws
 
-# Eclipse project files
+# VSCode and Eclipse project files
 .classpath
 .project
 bin/
 .settings/
-
+.vscode/

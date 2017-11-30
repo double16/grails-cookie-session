@@ -35,8 +35,18 @@ import grails.plugin.cookiesession.page.WhoAmI
 import grails.util.Holders
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Requires
 
 class IndexPageTest extends GebSpec {
+    static boolean SPRING_SECURITY_PRESENT = false
+    static {
+        try {
+            Class.forName('org.springframework.security.authentication.UsernamePasswordAuthenticationToken')
+            SPRING_SECURITY_PRESENT = true
+        } catch (ClassNotFoundException e) {
+            SPRING_SECURITY_PRESENT = false
+        }
+    }
 
     void setup() {
         boolean ssl = Holders.config.server.ssl.enabled as boolean
@@ -146,6 +156,7 @@ class IndexPageTest extends GebSpec {
         $("#lastname").text() == "lucchesi"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "the cookie session should be compatible with spring-security"() {
         when:
         to LoginPage
@@ -161,6 +172,7 @@ class IndexPageTest extends GebSpec {
         username == "testuser"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "the cookie session should be method compatible with Secured attributes"() {
         when:
         to IndexSecuredPage
@@ -196,6 +208,7 @@ class IndexPageTest extends GebSpec {
         $("#lastError").text() == "exception from recursive method: 1000"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "detect Locale serialization problem after multiple refreshes"() {
         when:
         to IndexSecuredPage
@@ -216,6 +229,7 @@ class IndexPageTest extends GebSpec {
         username == "testuser"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "test reauthenticate security method"() {
         when:
         to Logout
