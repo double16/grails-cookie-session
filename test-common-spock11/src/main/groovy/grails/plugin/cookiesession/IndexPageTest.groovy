@@ -32,9 +32,28 @@ import grails.plugin.cookiesession.page.RedirectTest
 import grails.plugin.cookiesession.page.SessionExists
 import grails.plugin.cookiesession.page.StoreLargeException
 import grails.plugin.cookiesession.page.WhoAmI
+import grails.util.Holders
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
+import spock.lang.Requires
 
 class IndexPageTest extends GebSpec {
+    static boolean SPRING_SECURITY_PRESENT = false
+    static {
+        try {
+            Class.forName('org.springframework.security.authentication.UsernamePasswordAuthenticationToken')
+            SPRING_SECURITY_PRESENT = true
+        } catch (ClassNotFoundException e) {
+            SPRING_SECURITY_PRESENT = false
+        }
+    }
+
+    void setup() {
+        boolean ssl = Holders.config.server.ssl.enabled as boolean
+        if (ssl) {
+            browser.baseUrl = browser.baseUrl.replace('http://', 'https://')
+        }
+    }
 
     def "data written to the session should be retrievable from the session"() {
         given:
@@ -105,6 +124,7 @@ class IndexPageTest extends GebSpec {
         $("#firstname").text() == "benjamin"
     }
 
+    @IgnoreIf({ System.getenv('COOKIE_SESSION_ENABLED') == 'false' })
     def "the cookie session should expire when the max inactive interval is exceeded"() {
         given:
         go "/index/configureSessionRepository?maxInactiveInterval=10"
@@ -136,6 +156,7 @@ class IndexPageTest extends GebSpec {
         $("#lastname").text() == "lucchesi"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "the cookie session should be compatible with spring-security"() {
         when:
         to LoginPage
@@ -151,6 +172,7 @@ class IndexPageTest extends GebSpec {
         username == "testuser"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "the cookie session should be method compatible with Secured attributes"() {
         when:
         to IndexSecuredPage
@@ -175,6 +197,7 @@ class IndexPageTest extends GebSpec {
         flashMessage == "this is a flash message"
     }
 
+    @IgnoreIf({ System.getenv('COOKIE_SESSION_ENABLED') == 'false' })
     def "exceptions should only be stored as strings"() {
         when:
         to StoreLargeException
@@ -185,6 +208,7 @@ class IndexPageTest extends GebSpec {
         $("#lastError").text() == "exception from recursive method: 1000"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "detect Locale serialization problem after multiple refreshes"() {
         when:
         to IndexSecuredPage
@@ -205,6 +229,7 @@ class IndexPageTest extends GebSpec {
         username == "testuser"
     }
 
+    @Requires({IndexPageTest.SPRING_SECURITY_PRESENT})
     def "test reauthenticate security method"() {
         when:
         to Logout

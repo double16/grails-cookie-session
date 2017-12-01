@@ -51,9 +51,19 @@ jobs:
             ./grails3_0/gradlew -s -p grails3_0 test
 
       - run:
+          name: Unit Test Grails Versions 3.0 no security
+          command: |
+            ./grails3_0/gradlew -s -p grails3_0_nosec test
+
+      - run:
           name: Unit Test Grails Versions 3.1
           command: |
             ./grails3_1/gradlew -s -p grails3_1 test
+
+      - run:
+          name: Unit Test Grails Versions 3.1 no security
+          command: |
+            ./grails3_1/gradlew -s -p grails3_1_nosec test
 
       - run:
           name: Unit Test Grails Versions 3.2
@@ -61,29 +71,59 @@ jobs:
             ./grails3_2/gradlew -s -p grails3_2 test
 
       - run:
+          name: Unit Test Grails Versions 3.2 no security
+          command: |
+            ./grails3_2/gradlew -s -p grails3_2_nosec test
+
+      - run:
           name: Unit Test Grails Versions 3.3
           command: |
             ./grails3_3/gradlew -s -p grails3_3 test
 
       - run:
+          name: Unit Test Grails Versions 3.3 no security
+          command: |
+            ./grails3_3/gradlew -s -p grails3_3_nosec test
+
+      - run:
           name: Integration Test Grails Versions 3.0
           command: |
-            ./grails3_0/gradlew -s -p grails3_0 integrationTest
+            ./grails3_0/gradlew -s -p grails3_0 check
+
+      - run:
+          name: Integration Test Grails Versions 3.0 no security
+          command: |
+            ./grails3_0/gradlew -s -p grails3_0_nosec check
 
       - run:
           name: Integration Test Grails Versions 3.1
           command: |
-            ./grails3_1/gradlew -s -p grails3_1 integrationTest
+            ./grails3_1/gradlew -s -p grails3_1 check
+
+      - run:
+          name: Integration Test Grails Versions 3.1 no security
+          command: |
+            ./grails3_1/gradlew -s -p grails3_1_nosec check
 
       - run:
           name: Integration Test Grails Versions 3.2
           command: |
-            ./grails3_2/gradlew -s -p grails3_2 integrationTest
+            ./grails3_2/gradlew -s -p grails3_2 check
+
+      - run:
+          name: Integration Test Grails Versions 3.2 no security
+          command: |
+            ./grails3_2/gradlew -s -p grails3_2_nosec check
 
       - run:
           name: Integration Test Grails Versions 3.3
           command: |
-            ./grails3_3/gradlew -s -p grails3_3 integrationTest
+            ./grails3_3/gradlew -s -p grails3_3 check
+
+      - run:
+          name: Integration Test Grails Versions 3.3 no security
+          command: |
+            ./grails3_3/gradlew -s -p grails3_3_nosec check
 
       - save_cache:
           key: v1-code-{{ .Branch }}-{{ checksum "build.gradle" }}-{{ checksum "test-common-spock10/build.gradle" }}-{{ checksum "test-common-spock11/build.gradle" }}-{{ checksum "grails3_0/build.gradle" }}-{{ checksum "grails3_1/build.gradle" }}-{{ checksum "grails3_2/build.gradle" }}-{{ checksum "grails3_3/build.gradle" }}
@@ -98,11 +138,19 @@ jobs:
       - store_test_results:
           path: ./grails3_0/build/test-results
       - store_test_results:
+          path: ./grails3_0_nosec/build/test-results
+      - store_test_results:
           path: ./grails3_1/build/test-results
+      - store_test_results:
+          path: ./grails3_1_nosec/build/test-results
       - store_test_results:
           path: ./grails3_2/build/test-results
       - store_test_results:
+          path: ./grails3_2_nosec/build/test-results
+      - store_test_results:
           path: ./grails3_3/build/test-results
+      - store_test_results:
+          path: ./grails3_3_nosec/build/test-results
 
       - store_artifacts:
           path: ./build/reports
@@ -111,14 +159,26 @@ jobs:
           path: ./grails3_0/build/reports
           destination: grails-3.0
       - store_artifacts:
+          path: ./grails3_0_nosec/build/reports
+          destination: grails-3.0_nosec
+      - store_artifacts:
           path: ./grails3_1/build/reports
           destination: grails-3.1
+      - store_artifacts:
+          path: ./grails3_1_nosec/build/reports
+          destination: grails-3.1_nosec
       - store_artifacts:
           path: ./grails3_2/build/reports
           destination: grails-3.2
       - store_artifacts:
+          path: ./grails3_2_nosec/build/reports
+          destination: grails-3.2_nosec
+      - store_artifacts:
           path: ./grails3_3/build/reports
           destination: grails-3.3
+      - store_artifacts:
+          path: ./grails3_3_nosec/build/reports
+          destination: grails-3.3_nosec
       - store_artifacts:
           path: ./build/reports/clover
           destination: code_coverage

@@ -1,3 +1,22 @@
+/*
+ * Copyright 2012-2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *  Patrick Double
+ *  patrick.double@objectpartners.com or pat@patdouble.com
+ */
+
 buildscript {
     ext {
         grailsVersion = project.grailsVersion
@@ -69,3 +88,30 @@ assets {
     minifyJs = true
     minifyCss = true
 }
+
+task integrationTestDisabled(type: Test) {
+    group = 'verification'
+    description = 'Integration test with cookie session disabled'
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    reports.html.enabled = true
+    systemProperty 'grails.env', 'test'
+    environment('COOKIE_SESSION_ENABLED', 'false')
+}
+
+task integrationTestSSL(type: Test) {
+    group = 'verification'
+    description = 'Integration test with SSL'
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    reports.html.enabled = true
+    systemProperty 'grails.env', 'test'
+    systemProperty 'server.ssl.enabled', 'true'
+    systemProperty 'server.ssl.key-store', project.file('../src/test/resources/selfsigned.jks')
+    systemProperty 'server.ssl.key-store-password', 'tomcat'
+    systemProperty 'server.ssl.key-alias', 'tomcat'
+    systemProperty 'server.ssl.key-password', 'tomcat'
+}
+
+check.dependsOn integrationTestDisabled, integrationTestSSL
+mergeTestReports.dependsOn integrationTestDisabled, integrationTestSSL

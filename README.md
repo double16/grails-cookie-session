@@ -1,8 +1,6 @@
 # Cookie Session Grails Plugin
 
-Current Version: 4.0.0
-
-[![CircleCI](https://circleci.com/gh/double16/grails-cookie-session.svg?style=svg&circle-token=aa34d542a6c31d626c75fa8d946858a32132c63e)](https://circleci.com/gh/double16/grails-cookie-session)
+[ ![Download](https://api.bintray.com/packages/double16/plugins/cookie-session/images/download.svg) ](https://bintray.com/double16/plugins/cookie-session/_latestVersion) [![CircleCI](https://circleci.com/gh/double16/grails-cookie-session.svg?style=svg&circle-token=aa34d542a6c31d626c75fa8d946858a32132c63e)](https://circleci.com/gh/double16/grails-cookie-session)
 
 The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server. Client sessions are transmitted from the browser to the application with each request and transmitted back with each response. This allows application deployments to be more stateless. Benefits of managing sessions this way include:
 
