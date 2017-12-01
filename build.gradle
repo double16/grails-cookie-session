@@ -40,8 +40,7 @@ plugins {
     id "com.github.ben-manes.versions" version "0.15.0"
 }
 
-//version "4.0.0.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
-version "4.0.0.RC1"
+version "4.0.0.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
 group "org.grails.plugins"
 description "The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server."
 
