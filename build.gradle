@@ -164,7 +164,7 @@ clover {
     }
 }
 
-Task createGrailsModuleTask(String version, String taskName) {
+def createGrailsModuleTask(String version, String taskName) {
     tasks.create(name: "${taskName}${version}", type: Exec, group: 'verification') {
         dependsOn publishToMavenLocal
         workingDir "grails${version}"

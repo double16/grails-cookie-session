@@ -21,7 +21,10 @@ package grails.plugin.cookiesession
 import ch.qos.logback.classic.Level
 import grails.config.Config
 import grails.core.GrailsApplication
+import grails.plugin.cookiesession.kryo.GrailsFlashScopeSerializerTest
+import groovyx.gpars.GParsPool
 import org.grails.config.PropertySourcesConfig
+import org.grails.web.servlet.GrailsFlashScope
 import org.springframework.context.ApplicationContext
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -31,6 +34,7 @@ import spock.lang.Unroll
 
 import javax.crypto.spec.SecretKeySpec
 import javax.servlet.ServletContext
+import java.util.concurrent.Future
 
 @Unroll
 class CookieSessionRepositoryTest extends Specification {
@@ -688,5 +692,48 @@ grails.plugin.cookiesession.useSessionCookieConfig = true
         sessionRepository.path == '/app'
         sessionRepository.comment == 'user session'
         sessionRepository.maxInactiveInterval == 20
+    }
+
+    void "thread safe #serializer"() {
+        given:
+        sessionRepository.log.level = Level.WARN
+        Config config = new PropertySourcesConfig().merge(new ConfigSlurper('test').parse("""
+grails.plugin.cookiesession.enabled = true
+grails.plugin.cookiesession.serializer = '${serializer}'
+"""))
+        sessionRepository.grailsApplication.config >> config
+        sessionRepository.cookieCount = 5
+        sessionRepository.maxCookieSize = 4096
+        sessionRepository.cookieName = 'testcookie'
+        sessionRepository.afterPropertiesSet()
+
+        def sessionTest = {
+            SerializableSession session = new SerializableSession()
+            session.setAttribute('k1', '123'*100)
+            session.setAttribute('k2', [a: 'first string', b: 'second string'])
+            MockHttpServletResponse response = new MockHttpServletResponse()
+            sessionRepository.saveSession(session, response)
+            MockHttpServletRequest request = new MockHttpServletRequest()
+            request.cookies = response.cookies
+            SerializableSession session2 = sessionRepository.restoreSession(request)
+            return session == session2
+        }
+
+        when:
+        List<Future<Boolean>> futures = new ArrayList<>(1000)
+        GParsPool.withPool {
+            (1..200).each {
+                futures.addAll(GParsPool.executeAsync(sessionTest, sessionTest, sessionTest, sessionTest, sessionTest))
+            }
+        }
+
+        then:
+        futures.size() == 1000
+        futures*.get().unique() == [ true ]
+
+        where:
+        serializer | _
+        'java'     | _
+        'kryo'     | _
     }
 }

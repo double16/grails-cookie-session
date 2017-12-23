@@ -19,6 +19,7 @@
 package grails.plugin.cookiesession
 
 import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.builder.ReflectionToStringBuilder
 import org.apache.commons.lang.builder.ToStringStyle
@@ -37,6 +38,7 @@ import java.security.MessageDigest
  */
 @CompileStatic
 @Slf4j
+@EqualsAndHashCode(includes = ['attributes'])
 class SerializableSession implements HttpSession, Serializable {
     // borrowed from other cookie session plugin to fake a session context
     @SuppressWarnings('deprecation')
