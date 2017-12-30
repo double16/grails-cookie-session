@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  ben@granicus.com or benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -95,9 +93,13 @@ class SecurityContextSessionPersistenceListener implements SessionPersistenceLis
             }
         }
 
-        if (session.getAttribute(SPRING__SECURITY__CONTEXT)
+        if (session.getAttribute(SPRING__SECURITY__CONTEXT) == null
+                && securityContextHolder.getContext()?.getAuthentication() != null) {
+            log.trace 'persisting security context to session'
+            session.setAttribute(SPRING__SECURITY__CONTEXT, securityContextHolder.getContext())
+        } else if (session.getAttribute(SPRING__SECURITY__CONTEXT) != null
                 && !session.getAttribute(SPRING__SECURITY__CONTEXT).is(securityContextHolder.getContext())) {
-            log.info 'persisting security context to session'
+            log.trace 'persisting security context to session'
             session.setAttribute(SPRING__SECURITY__CONTEXT, securityContextHolder.getContext())
         } else {
             log.trace 'not persisting security context'

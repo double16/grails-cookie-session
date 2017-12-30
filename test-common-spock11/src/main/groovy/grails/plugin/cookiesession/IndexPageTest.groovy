@@ -43,8 +43,10 @@ class IndexPageTest extends GebSpec {
         try {
             Class.forName('org.springframework.security.authentication.UsernamePasswordAuthenticationToken')
             SPRING_SECURITY_PRESENT = true
+            println 'Spring security found'
         } catch (ClassNotFoundException e) {
             SPRING_SECURITY_PRESENT = false
+            println 'Spring security not found'
         }
     }
 
@@ -245,6 +247,22 @@ class IndexPageTest extends GebSpec {
         to WhoAmI
         then:
         username == "admin"
+
+        when:
+        to Reauthenticate
+        to WhoAmI
+
+        then:
+        username == "testuser"
+    }
+
+    @Requires({ IndexPageTest.SPRING_SECURITY_PRESENT })
+    def "test reauthenticate security method without prior login"() {
+        when:
+        go "/index/invalidateSession"
+        to WhoAmI
+        then:
+        username == ""
 
         when:
         to Reauthenticate
