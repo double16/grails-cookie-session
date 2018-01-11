@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath 'com.bmuschko:gradle-clover-plugin:2.1.3'
+        classpath 'com.bmuschko:gradle-clover-plugin:2.2.0'
     }
 }
 
@@ -37,7 +37,7 @@ plugins {
     id 'ru.vyarus.quality' version '2.4.0'
     id 'codenarc'
     id "nebula.lint" version "8.3.1"
-    id "com.github.ben-manes.versions" version "0.15.0"
+    id "com.github.ben-manes.versions" version "0.17.0"
 }
 
 version "4.0.0.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
@@ -75,7 +75,7 @@ dependencies {
 
     testCompile "org.grails:grails-plugin-testing"
 
-    clover 'org.openclover:clover:4.2.0'
+    clover 'org.openclover:clover:4.2.1'
 
     console "org.grails:grails-console"
 
@@ -83,7 +83,7 @@ dependencies {
     compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.42") {
         exclude module: 'kryo' // we want kryo-shaded as above
     }
-    compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.4'
+    compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.1'
 }
 
 bootRepackage.enabled = false
