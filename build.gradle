@@ -30,14 +30,15 @@ buildscript {
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'com.bmuschko:gradle-clover-plugin:2.2.0'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
     }
 }
 
 plugins {
     id 'ru.vyarus.quality' version '2.4.0'
     id 'codenarc'
-    id "nebula.lint" version "8.3.1"
-    id "com.github.ben-manes.versions" version "0.17.0"
+    id 'nebula.lint' version '8.3.1'
+    id 'com.github.ben-manes.versions' version '0.17.0'
 }
 
 version "4.0.0.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
@@ -49,6 +50,7 @@ apply plugin: 'idea'
 apply plugin: "org.grails.grails-plugin"
 apply plugin: "org.grails.grails-plugin-publish"
 apply plugin: 'com.bmuschko.clover'
+apply plugin: 'org.sonarqube'
 
 ext {
     grailsVersion = project.grailsVersion
@@ -163,6 +165,19 @@ clover {
         html = true
     }
 }
+
+sonarqube {
+    properties {
+        property 'sonar.host.url', 'https://sonarcloud.io'
+        property 'sonar.organization', System.getenv('SONARQUBE_ORG')
+        property 'sonar.login', System.getenv('SONARQUBE_LOGIN')
+        property 'sonar.sources', ['src/main/groovy']
+        property 'sonar.tests', ['src/test/groovy']
+        properties['sonar.clover.reportPaths'] += cloverGenerateReport.reportsDir.absolutePath
+    }
+}
+
+tasks.sonarqube.dependsOn cloverGenerateReport
 
 def createGrailsModuleTask(String version, String taskName) {
     tasks.create(name: "${taskName}${version}", type: Exec, group: 'verification') {
