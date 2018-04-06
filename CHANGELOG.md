@@ -1,4 +1,4 @@
-## 4.0.1 (Unreleased)
+## 4.0.1 RC1
 
 SERIALIZATION COMPATIBILITY:
 
