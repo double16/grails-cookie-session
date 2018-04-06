@@ -21,10 +21,8 @@ package grails.plugin.cookiesession
 import ch.qos.logback.classic.Level
 import grails.config.Config
 import grails.core.GrailsApplication
-import grails.plugin.cookiesession.kryo.GrailsFlashScopeSerializerTest
 import groovyx.gpars.GParsPool
 import org.grails.config.PropertySourcesConfig
-import org.grails.web.servlet.GrailsFlashScope
 import org.springframework.context.ApplicationContext
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -57,14 +55,14 @@ class CookieSessionRepositoryTest extends Specification {
         grailsApplication.getClassLoader() >> getClass().classLoader
         ApplicationContext applicationContext = Stub(ApplicationContext)
         sessionRepository = new CookieSessionRepository(applicationContext: applicationContext)
-        sessionRepository.serializer = 'javaSessionSerializer'
+        sessionRepository.serializer = CookieSessionRepository.JAVA_SESSION_SERIALIZER_BEAN_NAME
         sessionRepository.encryptCookie = false
         sessionRepository.secure = false
         sessionRepository.httpOnly = true
         sessionRepository.servletContext = servletContext
         sessionRepository.grailsApplication = grailsApplication
-        applicationContext.getBean('javaSessionSerializer') >> (new JavaSessionSerializer(grailsApplication: grailsApplication))
-        applicationContext.getBean('kryoSessionSerializer') >> (new KryoSessionSerializer(grailsApplication: grailsApplication, springSecurityCompatibility: true, springSecurityPluginVersion: '3.0.0'))
+        applicationContext.getBean(CookieSessionRepository.JAVA_SESSION_SERIALIZER_BEAN_NAME) >> (new JavaSessionSerializer(grailsApplication: grailsApplication))
+        applicationContext.getBean(CookieSessionRepository.KRYO_SESSION_SERIALIZER_BEAN_NAME) >> (new KryoSessionSerializer(grailsApplication: grailsApplication, springSecurityCompatibility: true, springSecurityPluginVersion: '3.0.0'))
         applicationContext.getBean(CookieSessionRepository.SERVLET_CONTEXT_BEAN) >> servletContext
         applicationContext.containsBean(CookieSessionRepository.SERVLET_CONTEXT_BEAN) >> true
 
@@ -471,7 +469,7 @@ grails.plugin.cookiesession.serializer = 'kryo'
         sessionRepository.saveSession(session, response)
 
         then:
-        sessionRepository.serializer == 'kryoSessionSerializer'
+        sessionRepository.serializer == CookieSessionRepository.KRYO_SESSION_SERIALIZER_BEAN_NAME
         response.cookies.size() == 5
         response.cookies[0].name == 'testcookie-0'
         response.cookies[1].name == 'testcookie-1'
@@ -551,7 +549,7 @@ grails.plugin.cookiesession.serializer = 'unknownSessionSerializer'
         sessionRepository.saveSession(session, response)
 
         then:
-        sessionRepository.serializer == 'javaSessionSerializer'
+        sessionRepository.serializer == CookieSessionRepository.JAVA_SESSION_SERIALIZER_BEAN_NAME
         response.cookies.size() == 5
         response.cookies[0].name == 'testcookie-0'
         response.cookies[1].name == 'testcookie-1'
@@ -608,7 +606,7 @@ grails.plugin.cookiesession.useSessionCookieConfig = true
         servletContext.minorVersion >> 0
 
         ApplicationContext applicationContext = Stub(ApplicationContext)
-        applicationContext.getBean('javaSessionSerializer') >> (new JavaSessionSerializer(grailsApplication: sessionRepository.grailsApplication))
+        applicationContext.getBean(CookieSessionRepository.JAVA_SESSION_SERIALIZER_BEAN_NAME) >> (new JavaSessionSerializer(grailsApplication: sessionRepository.grailsApplication))
         applicationContext.getBean(CookieSessionRepository.SERVLET_CONTEXT_BEAN) >> servletContext
         applicationContext.containsBean(CookieSessionRepository.SERVLET_CONTEXT_BEAN) >> true
         sessionRepository.applicationContext = applicationContext

@@ -54,6 +54,13 @@ import java.util.zip.InflaterInputStream
 class CookieSessionRepository implements SessionRepository, InitializingBean, ApplicationContextAware {
     public static final String DEFAULT_CRYPTO_ALGORITHM = 'Blowfish'
     public static final String SERVLET_CONTEXT_BEAN = 'servletContext'
+    public static final String SETTING_USE_SESSION_COOKIE_CONFIG = 'useSessionCookieConfig'
+    public static final String SETTING_SERIALIZER = 'serializer'
+    public static final String JAVA_SERIALIZER = 'java'
+    public static final String KRYO_SERIALIZER = 'kryo'
+    public static final String JAVA_SESSION_SERIALIZER_BEAN_NAME = 'javaSessionSerializer'
+    public static final String KRYO_SESSION_SERIALIZER_BEAN_NAME = 'kryoSessionSerializer'
+
     private static final float DEFAULT_WARN_THRESHOLD = 0.8f
     private static final String CRYPTO_SEPARATOR = '/'
 
@@ -79,7 +86,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     String path
     String domain
     String comment
-    String serializer = 'java'
+    String serializer = JAVA_SERIALIZER
     Boolean useSessionCookieConfig
     Boolean useInitializationVector
     Boolean useGCMmode
@@ -93,16 +100,16 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
             servletContext = (ServletContext) applicationContext.getBean(SERVLET_CONTEXT_BEAN)
         }
 
-        assignSettingFromConfig('useSessionCookieConfig', false, Boolean, 'useSessionCookieConfig')
+        assignSettingFromConfig(SETTING_USE_SESSION_COOKIE_CONFIG, false, Boolean, SETTING_USE_SESSION_COOKIE_CONFIG)
         if (useSessionCookieConfig) {
             if (servletContext == null) {
                 useSessionCookieConfig = false
-                log.warn 'useSessionCookieConfig was enabled in the config file, but has been disabled because the servlet context is not available.'
+                log.warn '{} was enabled in the config file, but has been disabled because the servlet context is not available.', SETTING_USE_SESSION_COOKIE_CONFIG
             }
 
             if (servletContext?.majorVersion < 3) {
                 useSessionCookieConfig = false
-                log.warn 'useSessionCookieConfig was enabled in the config file, but has been disabled because the servlet does not support SessionCookieConfig.'
+                log.warn '{} was enabled in the config file, but has been disabled because the servlet does not support SessionCookieConfig.', SETTING_USE_SESSION_COOKIE_CONFIG
             }
         }
 
@@ -129,14 +136,14 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         assignSettingFromConfig('cookiecount', 5, Integer, 'cookieCount')
 
-        assignSettingFromConfig('serializer', 'java', String, 'serializer')
-        if (serializer == 'java') {
-            serializer = 'javaSessionSerializer'
-        } else if (serializer == 'kryo') {
-            serializer = 'kryoSessionSerializer'
+        assignSettingFromConfig(SETTING_SERIALIZER, JAVA_SERIALIZER, String, SETTING_SERIALIZER)
+        if (serializer == JAVA_SERIALIZER) {
+            serializer = JAVA_SESSION_SERIALIZER_BEAN_NAME
+        } else if (serializer == KRYO_SERIALIZER) {
+            serializer = KRYO_SESSION_SERIALIZER_BEAN_NAME
         } else if (!(applicationContext.containsBean(serializer) && SessionSerializer.isAssignableFrom(applicationContext.getType(serializer)))) {
             log.error 'no valid serializer configured. defaulting to java'
-            serializer = 'javaSessionSerializer'
+            serializer = JAVA_SESSION_SERIALIZER_BEAN_NAME
         }
 
         assignSettingFromConfig('maxcookiesize', 2048, Integer, 'maxCookieSize')

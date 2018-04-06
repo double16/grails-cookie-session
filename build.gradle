@@ -30,14 +30,14 @@ buildscript {
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'com.bmuschko:gradle-clover-plugin:2.2.0'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2'
     }
 }
 
 plugins {
     id 'ru.vyarus.quality' version '2.4.0'
     id 'codenarc'
-    id 'nebula.lint' version '8.3.1'
+    id 'nebula.lint' version '9.1.0'
     id 'com.github.ben-manes.versions' version '0.17.0'
 }
 
@@ -81,7 +81,7 @@ dependencies {
 
     console "org.grails:grails-console"
 
-    compile group: "com.esotericsoftware", name: "kryo-shaded", version: "4.0.1"
+    compile group: "com.esotericsoftware", name: "kryo-shaded", version: "4.0.2"
     compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.42") {
         exclude module: 'kryo' // we want kryo-shaded as above
     }

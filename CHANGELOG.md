@@ -1,4 +1,15 @@
-## 4.0.0 (Unreleased)
+## 4.0.1 (Unreleased)
+
+SERIALIZATION COMPATIBILITY:
+
+- Compatible with 4.0.0
+
+IMPROVEMENTS:
+
+- Upgrade Kyro from 4.0.1 to 4.0.2
+- Build and code quality improvements
+ 
+## 4.0.0
 
 SERIALIZATION COMPATIBILITY:
 
