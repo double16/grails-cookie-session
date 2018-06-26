@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "saveSession notifies listeners before saving"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -63,7 +63,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method setStatus(int) saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -81,7 +81,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method setStatus(int,String) saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -98,7 +98,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method flushBuffer() saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -115,7 +115,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method getWriter() saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -132,7 +132,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method getOutputStream() saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -149,7 +149,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method sendRedirect(String) saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -166,7 +166,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method sendError(int) saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -183,7 +183,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "method sendError(int,String) saves the session"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         request.getSession(false) >> session
 
@@ -216,7 +216,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "session will only be saved once"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
 
         when:
@@ -248,7 +248,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "session is not saved if it is not dirty"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(false)
         session.dirty = false
         request.getSession(false) >> session
@@ -265,7 +265,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "session is saved if it is new"() {
         given:
         configure()
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         session.dirty = false
         request.getSession(false) >> session
@@ -282,7 +282,7 @@ class SessionRepositoryResponseWrapperTest extends Specification {
     void "enforce session"() {
         given:
         configure(true)
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setIsNewSession(true)
         session.dirty = false
         request.getSession(true) >> session

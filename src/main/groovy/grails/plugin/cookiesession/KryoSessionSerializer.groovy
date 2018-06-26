@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import grails.plugin.cookiesession.kryo.UserSerializer
 import grails.plugin.cookiesession.kryo.UsernamePasswordAuthenticationTokenSerializer
 import grails.plugin.cookiesession.kryo.WebAuthenticationDetailsSerializer
 import grails.plugin.springsecurity.authentication.GrailsAnonymousAuthenticationToken
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.grails.web.servlet.GrailsFlashScope
 import org.objenesis.strategy.StdInstantiatorStrategy
@@ -56,6 +58,7 @@ import java.lang.reflect.InvocationHandler
  * classes have specific serializers to reduce the size of the data.
 */
 @Slf4j
+@CompileStatic
 class KryoSessionSerializer implements SessionSerializer, InitializingBean {
     GrailsApplication grailsApplication
     KryoPool kryoPool = new KryoPool.Builder({ getConfiguredKryoSerializer() } as KryoFactory).softReferences().build()
@@ -63,6 +66,7 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
     boolean springSecurityCompatibility = false
     String springSecurityPluginVersion
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     void afterPropertiesSet() {
         log.trace 'bean properties set, performing bean configuring bean'
 
@@ -84,6 +88,15 @@ class KryoSessionSerializer implements SessionSerializer, InitializingBean {
             log.trace 'starting serialize session'
             Output output = new Output(outputStream)
             kryo.writeObject(output, session)
+            output.close()
+        }
+    }
+
+    void serialize(Map<String, Serializable> attributes, OutputStream outputStream) {
+        kryoPool.run { Kryo kryo ->
+            log.trace 'starting serialize attributes'
+            Output output = new Output(outputStream)
+            kryo.writeObject(output, attributes)
             output.close()
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@
 package grails.plugin.cookiesession
 
 import grails.core.GrailsApplication
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
+import org.apache.commons.codec.binary.Base64InputStream
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -51,6 +54,7 @@ import java.util.zip.InflaterInputStream
  * cookies.
  */
 @Slf4j
+@CompileStatic
 class CookieSessionRepository implements SessionRepository, InitializingBean, ApplicationContextAware {
     public static final String DEFAULT_CRYPTO_ALGORITHM = 'Blowfish'
     public static final String SERVLET_CONTEXT_BEAN = 'servletContext'
@@ -74,7 +78,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
     Boolean useSnappy
 
-    long maxInactiveInterval = 120
+    int maxInactiveInterval = 120
 
     int cookieCount = 5
     int maxCookieSize = 2048
@@ -92,6 +96,11 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     Boolean useGCMmode
     ServletContext servletContext
 
+    Closure attributeSerializer = { Map<String, Serializable> attributes, OutputStream stream ->
+        getSessionSerializer().serialize(attributes, stream)
+    }
+
+    @CompileStatic(TypeCheckingMode.SKIP)
     void configureCookieSessionRepository() {
 
         log.info 'configuring CookieSessionRepository'
@@ -224,6 +233,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void warnForDeprecatedConfig() {
         if (grailsApplication.config.grails.plugin.cookiesession.containsKey('id')) {
             log.warn 'the grails.plugin.cookiesession.id setting is deprecated! Use the grails.plugin.cookiesession.cookiename setting instead!'
@@ -251,6 +261,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
      * intercepted and assigned to local variables
      * @param servletContext
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void interceptSessionCookieConfig(ServletContext servletContext) {
         servletContext.sessionCookieConfig.class.metaClass.invokeMethod = { String method, Object[] args ->
             switch (method) {
@@ -273,7 +284,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                     this.comment = args[0]
                     break
                 case 'setMaxAge':
-                    this.maxInactiveInterval = args[0] as long
+                    this.maxInactiveInterval = args[0] as int
                     break
             }
 
@@ -315,6 +326,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private boolean assignSettingFromConfig(String settingName, defaultValue, Class t, String targetPropertyName) {
         boolean assignedSetting
         try {
@@ -362,7 +374,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
             long maxInactiveIntervalMillis = maxInactiveInterval * 1000
             long currentTime = System.currentTimeMillis()
-            long lastAccessedTime = session?.lastAccessedTime ?: 0
+            long lastAccessedTime = (session == null) ? 0 : session.lastAccessedTime
             long inactiveInterval = currentTime - lastAccessedTime
 
             if (session) {
@@ -413,7 +425,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         log.trace 'serializeSession()'
 
         log.trace 'getting sessionSerializer: {}', serializer
-        SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
+        SessionSerializer sessionSerializer = getSessionSerializer()
 
         final int maxSessionSize = maxCookieSize * cookieCount
         ByteArrayOutputStream result = new ByteArrayOutputStream(maxSessionSize)
@@ -455,6 +467,10 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         return serializedSession
     }
 
+    SessionSerializer getSessionSerializer() {
+        (SessionSerializer) applicationContext.getBean(serializer)
+    }
+
     SerializableSession deserializeSession(String serializedSession, HttpServletRequest request) {
         log.trace 'deserializeSession()'
 
@@ -463,7 +479,8 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         try {
             log.trace 'decodeBase64 serialized session from {} bytes.', serializedSession.size()
-            ByteArrayInputStream input = new ByteArrayInputStream(serializedSession.decodeBase64())
+            @SuppressWarnings('Deprecated') // we want only the lower 8-bits that StringBufferInputStream provides
+            final InputStream input = new Base64InputStream(new StringBufferInputStream(serializedSession))
             InputStream stream = input
 
             if (encryptCookie) {
@@ -495,7 +512,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
                 stream = new InflaterInputStream(stream, new Inflater(), maxSessionSize)
             }
 
-            SessionSerializer sessionSerializer = (SessionSerializer) applicationContext.getBean(serializer)
+            SessionSerializer sessionSerializer = getSessionSerializer()
             session = sessionSerializer.deserialize(stream)
             session.isValid = true
         }
@@ -528,7 +545,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
 
         int inputLength = input.size()
 
-        int partitions = Math.ceil(inputLength / maxCookieSize)
+        int partitions = (int) Math.ceil((double) inputLength / maxCookieSize)
         log.trace 'splitting input of size {} string into {} paritions', input.size(), partitions
 
         for (int i = 0; i < partitions; i++) {
@@ -543,19 +560,23 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
     String getDataFromCookie(HttpServletRequest request) {
         log.trace 'getDataFromCookie()'
 
-        Collection<String> values = request.cookies?.findAll {
-            it.name.startsWith(cookieName)
-        }?.sort {
-            it.name.split('-')[1].toInteger()
-        }?.collect {
-            it.value
+        if (request.cookies == null) {
+            return null
+        }
+
+        Collection<String> values = request.cookies.findAll { Cookie c ->
+            c.name.startsWith(cookieName)
+        }.sort { Cookie c ->
+            c.name.substring(cookieName.length() + 1).toInteger()
+        }.collect { Cookie c ->
+            c.value
         }
 
         if (values == null) {
             return null
         }
 
-        String data = values.join()
+        String data = values.join('')
         log.debug 'retrieved {} bytes of data from {} session cookies.', data.size(), values.size()
 
         return data
@@ -573,7 +594,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
 
         String[] partitions = splitString(value)
-        partitions.eachWithIndex { it, i ->
+        partitions.eachWithIndex { String it, int i ->
             if (it) {
                 Cookie c = createCookie(i, it, maxInactiveInterval)
                 // if the value of the cookie will be empty, then delete it..
@@ -599,7 +620,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         }
     }
 
-    private Cookie createCookie(int i, String value, long m) {
+    private Cookie createCookie(int i, String value, int m) {
 
         Cookie c = new Cookie("${cookieName}-${i}".toString(), value)
 

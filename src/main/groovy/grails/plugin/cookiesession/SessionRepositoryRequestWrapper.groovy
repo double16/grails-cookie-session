@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -34,7 +32,7 @@ import javax.servlet.http.HttpSession
  */
 @CompileStatic
 @Slf4j
-class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
+final class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
     ServletContext servletContext
     SerializableSession session
     SessionRepository sessionRepository
@@ -52,9 +50,7 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
         if (session == null) {
             return
         }
-
-        session.setIsNewSession(false)
-        session.servletContext = servletContext
+        session.serializer = sessionRepository.attributeSerializer
 
         if (sessionPersistenceListeners != null) {
             for (SessionPersistenceListener listener : sessionPersistenceListeners) {
@@ -77,6 +73,7 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
             session = new SerializableSession()
             session.setIsNewSession(true)
             session.setServletContext(servletContext)
+            session.serializer = sessionRepository.attributeSerializer
         }
 
         return session
@@ -93,6 +90,6 @@ class SessionRepositoryRequestWrapper extends HttpServletRequestWrapper {
         log.trace('isRequestedSessionIdValid()')
 
         // session repository is responsible for determining if the requested session id is valid.
-        return sessionRepository.isSessionIdValid(this.getRequestedSessionId())
+        return sessionRepository.isSessionIdValid(this.requestedSessionId)
     }
 }

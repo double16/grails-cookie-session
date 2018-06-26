@@ -29,7 +29,7 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath 'com.bmuschko:gradle-clover-plugin:2.2.0'
+        classpath 'com.bmuschko:gradle-clover-plugin:2.2.1'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2'
     }
 }
@@ -38,10 +38,10 @@ plugins {
     id 'ru.vyarus.quality' version '2.4.0'
     id 'codenarc'
     id 'nebula.lint' version '9.1.0'
-    id 'com.github.ben-manes.versions' version '0.17.0'
+    id 'com.github.ben-manes.versions' version '0.20.0'
 }
 
-version "4.0.1.RC1"
+version "4.0.2.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
 group "org.grails.plugins"
 description "The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server."
 
@@ -70,6 +70,7 @@ dependencies {
     provided "org.springframework.boot:spring-boot-autoconfigure"
 
     profile "org.grails.profiles:web-plugin"
+    provided "org.codehaus.groovy:groovy-all:2.4.15:indy"
     provided "org.grails:grails-web-boot"
     provided "org.grails:grails-dependencies"
     provided 'org.grails.plugins:spring-security-core:3.1.2'
@@ -85,10 +86,15 @@ dependencies {
     compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.42") {
         exclude module: 'kryo' // we want kryo-shaded as above
     }
-    compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.1'
+    compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.2'
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.11'
 }
 
 bootRepackage.enabled = false
+
+compileGroovy {
+    groovyOptions.optimizationOptions.indy = true
+}
 
 // hack for Gradle 4
 jar {
