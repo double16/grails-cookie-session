@@ -546,7 +546,7 @@ class CookieSessionRepository implements SessionRepository, InitializingBean, Ap
         int inputLength = input.size()
 
         int partitions = (int) Math.ceil((double) inputLength / maxCookieSize)
-        log.trace 'splitting input of size {} string into {} paritions', input.size(), partitions
+        log.trace 'splitting input of size {} string into {} partitions', input.size(), partitions
 
         for (int i = 0; i < partitions; i++) {
             int start = i * maxCookieSize

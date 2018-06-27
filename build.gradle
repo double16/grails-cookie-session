@@ -140,12 +140,12 @@ publishing {
     publications {
         maven(MavenPublication) {
             pom.withXml {
-            Node pomNode = asNode()
-            pomNode.dependencies.'*'.findAll() {
-                it.artifactId.text() in ['spring-security-core', 'javax.servlet-api']
-            }.each() {
-                it.parent().remove(it)
-            }
+                Node pomNode = asNode()
+                pomNode.dependencies.'*'.findAll() {
+                    it.artifactId.text() in ['spring-security-core', 'javax.servlet-api', 'groovy-all']
+                }.each() {
+                    it.parent().remove(it)
+                }
             }
         }
     }

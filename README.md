@@ -19,7 +19,7 @@ When sessions are stored in memory on the server, if an application crashes or b
 
 Edit `build.gradle` add the following line under the plugins closure
 ```groovy
-  compile 'org.grails.plugins:cookie-session:4.0.0'
+  compile 'org.grails.plugins:cookie-session:4.0.2'
 ```
 
 # Configuration
