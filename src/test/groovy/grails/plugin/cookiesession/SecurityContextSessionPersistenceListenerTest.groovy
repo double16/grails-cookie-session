@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ grails.plugin.cookiesession.cookiename = 'xsession'
 
     void "afterSessionRestored does not fail"() {
         when:
-        listener.afterSessionRestored(new SerializableSession())
+        listener.afterSessionRestored(new SerializableSession().defaultSerializer())
         then:
         notThrown(Exception)
     }
@@ -109,7 +109,7 @@ grails.plugin.cookiesession.cookiename = 'xsession'
         request.addHeader('cookie', 'gsession-0=abc; gsession-1=def; state=nebraska')
         request.addHeader('accept', '*/*')
         DefaultSavedRequest sr = new DefaultSavedRequest(request, Mock(PortResolver))
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setAttribute(key, sr)
         session.dirty = false
 
@@ -134,7 +134,7 @@ grails.plugin.cookiesession.cookiename = 'xsession'
         )
         request.addHeader('accept', '*/*')
         DefaultSavedRequest sr = new DefaultSavedRequest(request, Mock(PortResolver))
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setAttribute(key, sr)
         session.dirty = false
 
@@ -152,7 +152,7 @@ grails.plugin.cookiesession.cookiename = 'xsession'
 
     void "SPRING_SECURITY_CONTEXT is skipped if not present"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.dirty = false
 
         when:
@@ -165,7 +165,7 @@ grails.plugin.cookiesession.cookiename = 'xsession'
 
     void "SPRING_SECURITY_CONTEXT is replaced if different"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setAttribute(SPRING__SECURITY__CONTEXT, new SecurityContextImpl())
         session.dirty = false
 
@@ -179,7 +179,7 @@ grails.plugin.cookiesession.cookiename = 'xsession'
 
     void "SPRING_SECURITY_CONTEXT is not replaced if already the correct instance"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setAttribute(SPRING__SECURITY__CONTEXT, SecurityContextHolder.getContext())
         session.dirty = false
 

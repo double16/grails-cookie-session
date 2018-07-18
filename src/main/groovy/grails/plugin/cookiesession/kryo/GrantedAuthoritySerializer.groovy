@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ class GrantedAuthoritySerializer extends Serializer<Object> {
     @Override
     Object read(Kryo kryo, Input input, Class<Object> type) {
         log.trace 'starting reading GrantedAuthority'
-        def role = input.readString()
+        String role = input.readString()
         def ga = constructor.newInstance(role)
         log.trace 'finished reading GrantedAuthority: {}', ga
         return ga

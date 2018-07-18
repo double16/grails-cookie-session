@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class CookieSessionRepositoryTest extends Specification {
     def setup() {
         request = new MockHttpServletRequest()
         response = new MockHttpServletResponse()
-        session = new SerializableSession()
+        session = new SerializableSession().defaultSerializer()
 
         ServletContext servletContext = Mock(ServletContext)
         servletContext.majorVersion >> 3
@@ -706,7 +706,7 @@ grails.plugin.cookiesession.serializer = '${serializer}'
         sessionRepository.afterPropertiesSet()
 
         def sessionTest = {
-            SerializableSession session = new SerializableSession()
+            SerializableSession session = new SerializableSession().defaultSerializer()
             session.setAttribute('k1', '123'*100)
             session.setAttribute('k2', [a: 'first string', b: 'second string'])
             MockHttpServletResponse response = new MockHttpServletResponse()

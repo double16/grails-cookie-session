@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class SessionRepositoryRequestWrapperTest extends Specification {
 
     void "restoreSession with valid session"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         SessionRepository repo = Stub(SessionRepository)
         SessionRepositoryRequestWrapper wrapper = new SessionRepositoryRequestWrapper(
                 new MockHttpServletRequest(),
@@ -66,7 +66,6 @@ class SessionRepositoryRequestWrapperTest extends Specification {
         wrapper.@session.is(session)
         !session.isNew()
         !session.isDirty()
-        session.servletContext.is(wrapper.servletContext)
         1 * l1.afterSessionRestored(session)
         1 * l2.afterSessionRestored(session)
     }
@@ -74,7 +73,7 @@ class SessionRepositoryRequestWrapperTest extends Specification {
 
     void "getSession(create) returns restored session"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         SessionRepository repo = Stub(SessionRepository)
         SessionRepositoryRequestWrapper wrapper = new SessionRepositoryRequestWrapper(
                 new MockHttpServletRequest(),
@@ -89,7 +88,6 @@ class SessionRepositoryRequestWrapperTest extends Specification {
         then:
         returnedSession.is(session)
         !returnedSession.isNew()
-        returnedSession.servletContext.is(wrapper.servletContext)
     }
 
     void "getSession(create) returns null for no session and no create"() {
@@ -129,7 +127,8 @@ class SessionRepositoryRequestWrapperTest extends Specification {
 
     void "getSession returns restored session"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
+        session.isNewSession = false
         SessionRepository repo = Stub(SessionRepository)
         SessionRepositoryRequestWrapper wrapper = new SessionRepositoryRequestWrapper(
                 new MockHttpServletRequest(),
@@ -144,16 +143,16 @@ class SessionRepositoryRequestWrapperTest extends Specification {
         then:
         returnedSession.is(session)
         !returnedSession.isNew()
-        returnedSession.servletContext.is(wrapper.servletContext)
     }
 
     void "getSession creates new session"() {
         given:
+        ServletContext servletContext = Mock(ServletContext)
         SessionRepository repo = Stub(SessionRepository)
         SessionRepositoryRequestWrapper wrapper = new SessionRepositoryRequestWrapper(
                 new MockHttpServletRequest(),
                 repo)
-        wrapper.servletContext = Mock(ServletContext)
+        wrapper.servletContext = servletContext
         repo.restoreSession(wrapper) >> null
 
         when:
