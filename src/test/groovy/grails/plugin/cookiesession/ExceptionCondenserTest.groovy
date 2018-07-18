@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,14 @@ class ExceptionCondenserTest extends Specification {
 
     void "afterSessionRestored has no side effects"() {
         when:
-        condenser.afterSessionRestored(new SerializableSession())
+        condenser.afterSessionRestored(new SerializableSession().defaultSerializer())
         then:
         notThrown(Exception)
     }
 
     void "beforeSessionSaved"() {
         given:
-        SerializableSession session = new SerializableSession()
+        SerializableSession session = new SerializableSession().defaultSerializer()
         session.setAttribute('attr1', 'value1')
         session.setAttribute('attr2', new IOException('I/O error'))
         when:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,12 +68,13 @@ class SerializableSession implements HttpSession, Serializable {
     private static final long serialVersionUID = 42L
     private final long creationTime
     long lastAccessedTime = 0
-    private final Map<String, Serializable> attributes = [:]
+    private final Map<String, Serializable> attributes
 
     transient boolean isValid
     transient boolean dirty
     /** digest of 'clean' session, used for dirty checking */
     transient byte[] digest
+    transient Closure serializer
     transient ServletContext servletContext
     transient private boolean newSession
     transient int maxInactiveInterval
@@ -81,6 +82,7 @@ class SerializableSession implements HttpSession, Serializable {
     SerializableSession() {
         this.creationTime = System.currentTimeMillis()
         this.lastAccessedTime = this.creationTime
+        this.attributes = [:]
         this.isValid = true
         this.dirty = false
     }
@@ -91,7 +93,6 @@ class SerializableSession implements HttpSession, Serializable {
         this.attributes = attributes
         this.isValid = true
         this.dirty = false
-        digest = digestOfSession()
     }
 
     long getCreationTime() {
@@ -210,6 +211,22 @@ class SerializableSession implements HttpSession, Serializable {
         return dirty
     }
 
+    void setSerializer(Closure closure) {
+        this.serializer = closure
+        if (attributes) {
+            digest = digestOfSession()
+        }
+    }
+
+    SerializableSession defaultSerializer() {
+        setSerializer { Map<String, Serializable> attributes, OutputStream stream ->
+            ObjectOutputStream output = new ObjectOutputStream(stream)
+            output.writeObject(attributes)
+            output.close()
+        }
+        this
+    }
+
     static final OutputStream NULL_OUTPUTSTREAM = new OutputStream() {
         @Override
         void write(int b) throws IOException { }
@@ -219,14 +236,16 @@ class SerializableSession implements HttpSession, Serializable {
 
     /**
      * Compute a digest of the session to be used for dirty checking.
-     * @return
+     * @return digest as byte[] or null if digest is not available
      */
     private byte[] digestOfSession() {
+        if (!serializer) {
+            log.warn 'not computing digest of session, serializer is not set'
+            return null
+        }
         log.trace 'computing digest of session'
         DigestOutputStream stream = new DigestOutputStream(NULL_OUTPUTSTREAM, MessageDigest.getInstance('MD5'))
-        ObjectOutputStream output = new ObjectOutputStream(stream)
-        output.writeObject(attributes)
-        output.close()
+        serializer.call(attributes, stream)
         byte[] digest = stream.messageDigest.digest()
         log.trace 'digest of session of session is {}', digest
         digest

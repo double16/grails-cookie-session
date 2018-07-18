@@ -1,4 +1,16 @@
-## 4.0.1 RC1
+## 4.0.2
+
+SERIALIZATION COMPATIBILITY:
+
+- Compatible with 4.0.0 - 4.0.1
+
+IMPROVEMENTS:
+
+- Performance improvements
+- Compile using Groovy indy (JDK 1.7+ invoke dynamic)
+- Build and code quality improvements
+ 
+## 4.0.1
 
 SERIALIZATION COMPATIBILITY:
 

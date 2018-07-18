@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *  Ben Lucchesi
- *  benlucchesi@gmail.com
  *  Patrick Double
  *  patrick.double@objectpartners.com or pat@patdouble.com
  */
@@ -34,9 +32,16 @@ class JavaSessionSerializer implements SessionSerializer {
     GrailsApplication grailsApplication
 
     void serialize(SerializableSession session, OutputStream outputStream) {
-        log.trace 'serializeSession()'
+        log.trace 'serialize session'
         ObjectOutputStream output = new ObjectOutputStream(outputStream)
         output.writeObject(session)
+        output.close()
+    }
+
+    void serialize(Map<String, Serializable> attributes, OutputStream outputStream) {
+        log.trace 'serialize attributes'
+        ObjectOutputStream output = new ObjectOutputStream(outputStream)
+        output.writeObject(attributes)
         output.close()
     }
 
