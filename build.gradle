@@ -30,16 +30,16 @@ buildscript {
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'com.bmuschko:gradle-clover-plugin:2.2.1'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7.0.1622'
     }
 }
 
 plugins {
-    id 'ru.vyarus.quality' version '2.4.0'
+    id 'ru.vyarus.quality' version '3.3.0'
     id 'codenarc'
-    id 'nebula.lint' version '9.1.0'
+    id 'nebula.lint' version '10.4.2'
     id 'com.github.ben-manes.versions' version '0.20.0'
-    id 'com.jfrog.bintray' version '1.8.3'
+    id 'com.jfrog.bintray' version '1.8.4'
 }
 
 version "4.0.2"
@@ -84,11 +84,11 @@ dependencies {
     console "org.grails:grails-console"
 
     compile group: "com.esotericsoftware", name: "kryo-shaded", version: "4.0.2"
-    compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.42") {
+    compile(group: "de.javakaffee", name: "kryo-serializers", version: "0.45") {
         exclude module: 'kryo' // we want kryo-shaded as above
     }
     compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.2'
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.11'
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.12'
 }
 
 bootRepackage.enabled = false
