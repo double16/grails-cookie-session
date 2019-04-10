@@ -42,7 +42,7 @@ plugins {
     id 'com.jfrog.bintray' version '1.8.4'
 }
 
-version "4.0.2"
+version "4.0.3.${new Date().format('yyyyMMddHHmmss', TimeZone.getTimeZone('UTC'))}"
 group "org.grails.plugins"
 description "The Cookie Session plugin enables grails applications to store session data in http cookies between requests instead of in memory on the server."
 
@@ -79,7 +79,7 @@ dependencies {
 
     testCompile "org.grails:grails-plugin-testing"
 
-    clover 'org.openclover:clover:4.2.1'
+    clover 'org.openclover:clover:4.3.1'
 
     console "org.grails:grails-console"
 

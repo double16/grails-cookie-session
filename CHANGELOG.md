@@ -1,3 +1,13 @@
+## 4.0.3 UNRELEASED
+
+SERIALIZATION COMPATIBILITY:
+
+- Compatible with 4.0.0 - 4.0.2
+
+IMPROVEMENTS:
+
+- Build system upgrades
+
 ## 4.0.2
 
 SERIALIZATION COMPATIBILITY:
